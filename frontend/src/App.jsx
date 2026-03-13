@@ -85,6 +85,7 @@ function Sidebar({ user, onLogout }) {
 
 function Dashboard() {
   const [stats, setStats] = useState({ volunteers: 0, visitors: 0, items: 0 });
+  const navigate = useNavigate();
 
   useEffect(() => {
     Promise.all([
@@ -103,8 +104,38 @@ function Dashboard() {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h2 className="page-title">Dashboard</h2>
+        <h2 className="page-title" style={{fontSize: '2.5rem', marginBottom: '1rem'}}>Welcome to The Village</h2>
       </div>
+      
+      <p style={{fontSize: '1.25rem', color: 'var(--text-secondary)', marginBottom: '2rem'}}>What would you like to do today?</p>
+
+      <div className="stat-grid" style={{marginBottom: '3rem'}}>
+        <button className="action-card" onClick={() => navigate('/timeclock')}>
+            <Clock size={48} color="var(--accent-primary)" style={{marginBottom: '1rem'}}/>
+            <h3 style={{fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)'}}>Sign In / Out</h3>
+            <p style={{color: 'var(--text-secondary)'}}>Log your volunteer hours here.</p>
+        </button>
+        
+        <button className="action-card" style={{borderColor: 'var(--accent-success)'}} onClick={() => navigate('/checkout')}>
+            <CheckSquare size={48} color="var(--accent-success)" style={{marginBottom: '1rem'}}/>
+            <h3 style={{fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)'}}>Check Out Packages</h3>
+            <p style={{color: 'var(--text-secondary)'}}>Hand out items to a visitor.</p>
+        </button>
+        
+        <button className="action-card" onClick={() => navigate('/visitors')}>
+            <UserPlus size={48} color="var(--accent-primary)" style={{marginBottom: '1rem'}}/>
+            <h3 style={{fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)'}}>Add a new Visitor</h3>
+            <p style={{color: 'var(--text-secondary)'}}>Log information for a new foster parent/child.</p>
+        </button>
+
+        <button className="action-card" onClick={() => navigate('/volunteers')}>
+            <Users size={48} color="var(--accent-warning)" style={{marginBottom: '1rem'}}/>
+            <h3 style={{fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)'}}>Add a Volunteer</h3>
+            <p style={{color: 'var(--text-secondary)'}}>Register a new volunteer into the system.</p>
+        </button>
+      </div>
+
+      <h3 style={{fontSize: '1.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem'}}>Current Stats</h3>
       <div className="stat-grid">
         <div className="stat-card">
           <div className="stat-card-title">TOTAL VOLUNTEERS</div>
