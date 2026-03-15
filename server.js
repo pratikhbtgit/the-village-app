@@ -319,7 +319,7 @@ app.delete('/api/checkouts/:id', requireAdmin, (req, res) => {
 app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
 
 // Catch-all route for React Router (must be placed after all API routes)
-app.get('*', (req, res) => {
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'));
 });
 

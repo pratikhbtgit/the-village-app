@@ -187,7 +187,7 @@ function Volunteers() {
 
   const handleDelete = (id) => {
       if(window.confirm("Are you sure you want to delete this volunteer?")) {
-          axios.delete(`${API}/volunteers/${id}`).then(() => fetchVols());
+          axios.delete(`${API}/volunteers/${id}`).then(() => fetchVols()).catch(err => alert(err.response?.data?.error || err.message));
       }
   }
 
@@ -365,7 +365,7 @@ function Inventory() {
 
   const handleDelete = (id) => {
       if(window.confirm("Delete this item permanently?")) {
-          axios.delete(`${API}/items/${id}`).then(() => fetchItems());
+          axios.delete(`${API}/items/${id}`).then(() => fetchItems()).catch(err => alert(err.response?.data?.error || err.message));
       }
   }
 
@@ -429,10 +429,7 @@ function Inventory() {
           <div className="form-group"><label>Category ID</label><input className="input" value={formData.Category} onChange={e => setFormData({...formData, Category: e.target.value})} /></div>
           <div className="form-group"><label>Size</label><input className="input" value={formData.Size} onChange={e => setFormData({...formData, Size: e.target.value})} /></div>
           <div className="form-group"><label>Condition</label><input className="input" value={formData.Condition} onChange={e => setFormData({...formData, Condition: e.target.value})} /></div>
-          <div style={{display: 'flex', gap: '1rem'}}>
-            <div className="form-group" style={{flex: 1}}><label>Est. Value ($)</label><input className="input" type="number" step="0.01" value={formData.Amount} onChange={e => setFormData({...formData, Amount: e.target.value})} /></div>
-            <div className="form-group" style={{flex: 1}}><label>Quantity</label><input className="input" type="number" required value={formData.Quantity} onChange={e => setFormData({...formData, Quantity: e.target.value})} /></div>
-          </div>
+          <div className="form-group"><label>Quantity</label><input className="input" type="number" required value={formData.Quantity} onChange={e => setFormData({...formData, Quantity: e.target.value})} /></div>
           <button type="submit" className="btn btn-primary" style={{width: '100%', justifyContent: 'center'}}>{editingId ? "Update Item" : "Save Item"}</button>
         </form>
       </Modal>
@@ -467,7 +464,7 @@ function Visitors() {
   };
   const handleDelete = (id) => {
       if(window.confirm("Delete this visitor permanently?")) {
-          axios.delete(`${API}/visitors/${id}`).then(() => fetchVisitors());
+          axios.delete(`${API}/visitors/${id}`).then(() => fetchVisitors()).catch(err => alert(err.response?.data?.error || err.message));
       }
   }
 
@@ -551,7 +548,7 @@ function CheckOut() {
 
   const handleDelete = (id) => {
       if(window.confirm("Return this checkout? It will be deleted and the item quantity restored.")) {
-          axios.delete(`${API}/checkouts/${id}`).then(() => fetchAll());
+          axios.delete(`${API}/checkouts/${id}`).then(() => fetchAll()).catch(err => alert(err.response?.data?.error || err.message));
       }
   }
 
@@ -666,8 +663,6 @@ function Reports() {
       .sort((a, b) => b.qty - a.qty)
       .slice(0, 5);
 
-  const totalInventoryValue = items.reduce((acc, i) => acc + ((i.Amount || 0) * (i.Quantity || 0)), 0);
-
   const formatHoursToHHMM = (decimalHours) => {
       const h = Math.floor(decimalHours);
       const m = Math.round((decimalHours - h) * 60);
@@ -685,10 +680,6 @@ function Reports() {
           <div className="stat-card" style={{borderColor: 'var(--accent-warning)', borderLeftWidth: '4px'}}>
             <div className="stat-card-title">LOW STOCK ITEMS (&le; 5)</div>
             <div className="stat-card-value" style={{color: 'var(--accent-warning)', fontSize: '2rem'}}>{lowStock.length}</div>
-          </div>
-          <div className="stat-card" style={{borderColor: 'var(--accent-success)', borderLeftWidth: '4px'}}>
-            <div className="stat-card-title">EST. INVENTORY VALUE</div>
-            <div className="stat-card-value" style={{color: 'var(--accent-success)', fontSize: '2rem'}}>${totalInventoryValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
           </div>
           <div className="stat-card" style={{borderColor: 'var(--accent-primary)', borderLeftWidth: '4px'}}>
             <div className="stat-card-title">TOTAL HOURS LOGGED</div>
