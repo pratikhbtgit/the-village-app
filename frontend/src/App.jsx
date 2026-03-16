@@ -252,6 +252,8 @@ function Volunteers() {
 function TimeClock() {
   const [vols, setVols] = useState([]);
   const [hours, setHours] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
   useEffect(() => {
     axios.get(`${API}/volunteers`).then(res => setVols(res.data));
     fetchHours();
@@ -270,6 +272,10 @@ function TimeClock() {
   };
 
   const checkedInUsers = hours.filter(h => !h.TimeOut).map(h => h.volunterID);
+  
+  const filteredVols = vols.filter(v => 
+    (v.firstname + ' ' + v.lastname).toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="page-container">
@@ -277,51 +283,83 @@ function TimeClock() {
         <h2 className="page-title">Volunteer Sign In / Out</h2>
       </div>
       
-      <div className="card" style={{marginBottom: "2rem"}}>
-        <h3>Active Roster</h3>
-        <p style={{color: "var(--text-secondary)", marginBottom: "1rem"}}>Quick Check-in / Check-out</p>
-        <div style={{display: "flex", flexWrap: "wrap", gap: "1rem"}}>
-          {vols.map(v => {
-            const isCheckedIn = checkedInUsers.includes(v.ID);
-            return (
-              <div key={v.ID} style={{
-                background: isCheckedIn ? "rgba(16, 185, 129, 0.1)" : "var(--bg-primary)",
-                border: isCheckedIn ? "1px solid var(--accent-success)" : "1px solid var(--border-light)",
-                padding: "1rem", borderRadius: "10px", width: "200px", textAlign: "center"
-              }}>
-                <div style={{fontWeight: 600, marginBottom: "0.5rem"}}>{v.firstname} {v.lastname}</div>
-                {isCheckedIn ? (
-                  <button onClick={() => checkout(v.ID)} className="btn btn-danger" style={{width: "100%", justifyContent: "center"}}>
-                     Check Out
-                  </button>
-                ) : (
-                  <button onClick={() => checkin(v.ID)} className="btn btn-success" style={{width: "100%", justifyContent: "center"}}>
-                     Check In
-                  </button>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '2rem', alignItems: 'start' }}>
+        
+        {/* Left Column: Active Roster (Vertical List) */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 200px)' }}>
+          <h3 style={{ marginBottom: '0.5rem' }}>Active Roster</h3>
+          <p style={{color: "var(--text-secondary)", marginBottom: "1rem"}}>Quick Check-in / Check-out</p>
+          
+          <input 
+            type="text" 
+            className="input" 
+            placeholder="Search roster..." 
+            value={searchTerm} 
+            onChange={e => setSearchTerm(e.target.value)}
+            style={{ width: '100%', marginBottom: '1rem' }}
+          />
 
-      <div className="table-container">
-        <table>
-            <thead>
-              <tr><th>Volunteer</th><th>Check In</th><th>Check Out</th></tr>
-            </thead>
-            <tbody>
-              {hours.map(h => (
-                <tr key={h.ID}>
-                  <td>{h.firstname} {h.lastname}</td>
-                  <td>{h.TimeIn ? format(new Date(h.TimeIn), 'PP p') : '-'}</td>
-                  <td style={{color: !h.TimeOut ? "var(--accent-success)" : "inherit"}}>
-                      {h.TimeOut ? format(new Date(h.TimeOut), 'PP p') : 'Currently Active'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-        </table>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', overflowY: 'auto', paddingRight: '0.5rem', flex: 1 }}>
+            {filteredVols.map(v => {
+              const isCheckedIn = checkedInUsers.includes(v.ID);
+              return (
+                <div key={v.ID} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  background: isCheckedIn ? "rgba(16, 185, 129, 0.1)" : "var(--bg-primary)",
+                  border: isCheckedIn ? "1px solid var(--accent-success)" : "1px solid var(--border-light)",
+                  padding: "1rem", borderRadius: "10px", width: "100%"
+                }}>
+                  <div style={{fontWeight: 600, fontSize: '1.1rem'}}>{v.firstname} {v.lastname}</div>
+                  {isCheckedIn ? (
+                    <button onClick={() => checkout(v.ID)} className="btn btn-danger" style={{ minWidth: "120px", justifyContent: "center", padding: '0.6rem' }}>
+                       Check Out
+                    </button>
+                  ) : (
+                    <button onClick={() => checkin(v.ID)} className="btn btn-success" style={{ minWidth: "120px", justifyContent: "center", padding: '0.6rem' }}>
+                       Check In
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+            
+            {filteredVols.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                No volunteers found in roster.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Recent Activity Log */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 200px)' }}>
+          <h3 style={{ marginBottom: '1rem' }}>Recent Log Activity</h3>
+          <div className="table-container" style={{ margin: 0, flex: 1, overflowY: 'auto' }}>
+            <table style={{ margin: 0 }}>
+                <thead style={{ position: 'sticky', top: 0, backgroundColor: 'var(--bg-secondary)', zIndex: 10 }}>
+                  <tr><th>Volunteer</th><th>Check In</th><th>Check Out</th></tr>
+                </thead>
+                <tbody>
+                  {hours.length > 0 ? hours.map(h => (
+                    <tr key={h.ID}>
+                      <td style={{ fontWeight: 500 }}>{h.firstname} {h.lastname}</td>
+                      <td>{h.TimeIn ? format(new Date(h.TimeIn), 'MMM d, yyyy h:mm a') : '-'}</td>
+                      <td style={{ color: !h.TimeOut ? "var(--accent-success)" : "inherit", fontWeight: !h.TimeOut ? 600 : 'normal' }}>
+                          {h.TimeOut ? format(new Date(h.TimeOut), 'MMM d, yyyy h:mm a') : 'Currently Active'}
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan="3" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                        No check-in history available.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -613,6 +651,9 @@ function Reports() {
   const [hours, setHours] = useState([]);
   const [checkouts, setCheckouts] = useState([]);
   const [visitors, setVisitors] = useState([]);
+  const [dateRange, setDateRange] = useState('all');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
   
   useEffect(() => {
     axios.get(`${API}/items`).then(res => setItems(res.data));
@@ -621,9 +662,30 @@ function Reports() {
     axios.get(`${API}/visitors`).then(res => setVisitors(res.data));
   }, []);
 
+  const isWithinRange = (dateString) => {
+    if (dateRange === 'all' || !dateString) return true;
+    const date = new Date(dateString);
+    if (dateRange === 'custom') {
+      const start = customStart ? new Date(customStart) : new Date(0);
+      const end = customEnd ? new Date(customEnd) : new Date('2100-01-01');
+      end.setHours(23, 59, 59, 999);
+      return date >= start && date <= end;
+    }
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    if (dateRange === '1d') return diffMs <= 24 * 60 * 60 * 1000;
+    if (dateRange === '7d') return diffMs <= 7 * 24 * 60 * 60 * 1000;
+    if (dateRange === '30d') return diffMs <= 30 * 24 * 60 * 60 * 1000;
+    return true;
+  };
+
+  const filteredHours = hours.filter(h => isWithinRange(h.TimeIn));
+  const filteredCheckouts = checkouts.filter(c => isWithinRange(c.CheckoutDate));
+  const filteredVisitors = visitors.filter(v => isWithinRange(v.visitDate));
+
   const lowStock = items.filter(i => i.Quantity <= 5);
 
-  const totalHours = hours.reduce((acc, h) => {
+  const totalHours = filteredHours.reduce((acc, h) => {
       if(h.TimeIn && h.TimeOut) {
           const start = new Date(h.TimeIn);
           const end = new Date(h.TimeOut);
@@ -633,7 +695,7 @@ function Reports() {
   }, 0);
 
   const volunteerStats = {};
-  hours.forEach(h => {
+  filteredHours.forEach(h => {
      if(h.TimeIn && h.TimeOut) {
          const start = new Date(h.TimeIn);
          const end = new Date(h.TimeOut);
@@ -648,11 +710,11 @@ function Reports() {
       .map(([name, hrs]) => ({ name, hrs }))
       .sort((a, b) => b.hrs - a.hrs);
 
-  const totalItemsDispensed = checkouts.reduce((acc, c) => acc + (c.Quanlity || 0), 0);
-  const firstPlacements = visitors.filter(v => v.isfirstPlacement).length;
+  const totalItemsDispensed = filteredCheckouts.reduce((acc, c) => acc + (c.Quanlity || 0), 0);
+  const firstPlacements = filteredVisitors.filter(v => v.isfirstPlacement).length;
 
   const dispensedStats = {};
-  checkouts.forEach(c => {
+  filteredCheckouts.forEach(c => {
       const name = c.ItemName || 'Unknown Item';
       if(!dispensedStats[name]) dispensedStats[name] = 0;
       dispensedStats[name] += (c.Quanlity || 0);
@@ -671,8 +733,29 @@ function Reports() {
 
   return (
     <div className="page-container">
-      <div className="page-header">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h2 className="page-title">Reports & Comprehensive Analytics</h2>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {dateRange === 'custom' && (
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+               <input type="date" className="input" value={customStart} onChange={e => setCustomStart(e.target.value)} />
+               <span>to</span>
+               <input type="date" className="input" value={customEnd} onChange={e => setCustomEnd(e.target.value)} />
+            </div>
+          )}
+          <select 
+            className="input" 
+            style={{ width: '200px', fontWeight: 'bold' }} 
+            value={dateRange} 
+            onChange={e => setDateRange(e.target.value)}
+          >
+            <option value="all">All Time</option>
+            <option value="1d">Last 24 Hours</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="custom">Custom Range...</option>
+          </select>
+        </div>
       </div>
 
       {/* Top Value Cards */}
@@ -771,13 +854,13 @@ function Reports() {
           <div className="card" style={{display: 'flex', flexDirection: 'column'}}>
               <h3 style={{marginBottom: '1rem', color: '#10b981'}}>Recent Check Out History</h3>
               <div className="table-container" style={{flex: 1, maxHeight: '300px', overflowY: 'auto'}}>
-                  {checkouts.length > 0 ? (
+                  {filteredCheckouts.length > 0 ? (
                   <table>
                       <thead style={{position: 'sticky', top: 0, backgroundColor: 'var(--bg-secondary)'}}>
                           <tr><th>Date</th><th>Visitor</th><th>Item</th><th>Qty</th></tr>
                       </thead>
                       <tbody>
-                          {checkouts.slice(0, 5).map(c => (
+                          {filteredCheckouts.slice(0, 5).map(c => (
                               <tr key={c.checkoutID}>
                                   <td>{c.CheckoutDate ? format(new Date(c.CheckoutDate), 'MMM d, h:mm a') : 'N/A'}</td>
                                   <td>{c.VisitorName}</td>
@@ -788,7 +871,7 @@ function Reports() {
                       </tbody>
                   </table>
                   ) : (
-                      <div style={{color: 'var(--text-secondary)', padding: '2rem', textAlign: 'center'}}>No checkouts recorded yet.</div>
+                      <div style={{color: 'var(--text-secondary)', padding: '2rem', textAlign: 'center'}}>No checkouts recorded in this time range.</div>
                   )}
               </div>
           </div>
