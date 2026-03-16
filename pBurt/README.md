@@ -1,17 +1,17 @@
 # VillageDB Desktop App
 
-This is a Tkinter-based desktop application for managing volunteers for The Village, backed by a PostgreSQL database. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+This is a Tkinter-based desktop application for managing volunteers for The Village, backed by a PostgreSQL database. 
 
 It provides:
 - A landing page with navigation.
-- A **Volunteers** view to add, edit, delete, and track check-in/check-out times. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+- A **Volunteers** view to add, edit, delete, and track check-in/check-out times. 
 
 ## Features
 
-- Add, edit, and delete volunteers. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
-- Track volunteer check-ins and check-outs (stored in the `volunteer_hours` table). [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
-- Highlight currently checked-in volunteers in the overview table. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
-- Simple, single-file Python GUI for easy local use. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+- Add, edit, and delete volunteers. 
+- Track volunteer check-ins and check-outs (stored in the `volunteer_hours` table). 
+- Highlight currently checked-in volunteers in the overview table. 
+- Simple, single-file Python GUI for easy local use. 
 
 ## Requirements
 
@@ -20,7 +20,7 @@ It provides:
 - Python packages:
   - `psycopg2` or `psycopg2-binary`
   - `Pillow` (PIL)
-  - `tkinter` (usually included with Python) [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+  - `tkinter` (usually included with Python) 
 
 Install dependencies:
 
@@ -28,11 +28,11 @@ Install dependencies:
 pip install psycopg2-binary Pillow
 ```
 
-> On some systems you may need `psycopg2` instead of `psycopg2-binary`. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+> On some systems you may need `psycopg2` instead of `psycopg2-binary`. 
 
 ## Database Setup
 
-The app expects a PostgreSQL database with at least these tables: [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+The app expects a PostgreSQL database with at least these tables: 
 
 ```sql
 CREATE TABLE volunteers (
@@ -53,7 +53,7 @@ CREATE TABLE volunteer_hours (
 );
 ```
 
-Default connection settings in `pBurt/VillageDB.py`: [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+Default connection settings in `pBurt/VillageDB.py`: 
 
 ```python
 DB_NAME = "postgres"
@@ -63,11 +63,11 @@ DB_HOST = "127.0.0.1"
 DB_PORT = "5432"
 ```
 
-Update these to match your local PostgreSQL instance before running the app. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+Update these to match your local PostgreSQL instance before running the app. 
 
 ## Project Files
 
-Key files related to the desktop app: [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+Key files related to the desktop app: 
 
 | File                 | Description                          |
 |----------------------|--------------------------------------|
@@ -75,7 +75,7 @@ Key files related to the desktop app: [github](https://github.com/pratikhbtgit/t
 | `village.sqlite`     | Legacy/alternate DB (not used here)  |
 | `village-logo.webp`  | Logo displayed on the landing page   |
 
-The app attempts to load `village-logo.webp` from the project root; if missing, it falls back to a text title. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+The app attempts to load `village-logo.webp` from the project root; if missing, it falls back to a text title. 
 
 ## Running the App Locally
 
@@ -102,7 +102,7 @@ The app attempts to load `village-logo.webp` from the project root; if missing, 
    pip install psycopg2-binary Pillow
    ```
 
-4. Ensure PostgreSQL is running, the database and tables are created as above, and the credentials in `pBurt/VillageDB.py` are correct. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+4. Ensure PostgreSQL is running, the database and tables are created as above, and the credentials in `pBurt/VillageDB.py` are correct. 
 
 5. Run the desktop app:
 
@@ -110,7 +110,7 @@ The app attempts to load `village-logo.webp` from the project root; if missing, 
    python pBurt/VillageDB.py
    ```
 
-   This opens the **Village DB** landing window; click **Volunteers** to open the overview window. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
+   This opens the **Village DB** landing window; click **Volunteers** to open the overview window. 
 
 ## Usage Notes
 
@@ -120,10 +120,6 @@ The app attempts to load `village-logo.webp` from the project root; if missing, 
   - Use **Edit** to modify the selected volunteer’s details.
   - Use **Delete** to remove the selected volunteer.
   - Use **Check In** to start a volunteer session.
-  - Use **Check Out** to end the latest open session for that volunteer. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
-- Volunteers currently checked in are highlighted in the table. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
-- The **Visitors**, **Items**, and **Kits** buttons are placeholders and currently show “not implemented yet” messages. [github](https://github.com/pratikhbtgit/the-village-app/blob/pBurt/dev/pBurt/VillageDB.py)
-
-***
-
-Do you want a shorter “Quick Start” block (5–6 lines) that you can put at the very top of the main repo README?
+  - Use **Check Out** to end the latest open session for that volunteer. 
+- Volunteers currently checked in are highlighted in the table. 
+- The **Visitors**, **Items**, and **Kits** buttons are placeholders and currently show “not implemented yet” messages. 
