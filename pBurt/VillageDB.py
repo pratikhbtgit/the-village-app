@@ -26,7 +26,7 @@ def get_connection():
         password=DB_PASSWORD,
         host=DB_HOST,
         port=DB_PORT,
-    )  # [web:101][web:104][web:107]
+    )
 
 def insert_volunteer(first_name: str, last_name: str, phone: str, email: str, qrcode: str):
     conn = None
@@ -411,7 +411,7 @@ def create_volunteer_overview(parent):
         if not values:
             messagebox.showerror("Validation error", "Please select a volunteer.")
             return
-        vol_id = int(values[0])  # <--- CAST HERE
+        vol_id = int(values[0])
         if vol_id in checked_in_ids:
             messagebox.showinfo("Already checked in", "This volunteer is already checked in.")
             return
@@ -431,7 +431,7 @@ def create_volunteer_overview(parent):
         if not values:
             messagebox.showerror("Validation error", "Please select a volunteer.")
             return
-        vol_id = int(values[0])  # <--- CAST HERE
+        vol_id = int(values[0])
         if vol_id not in checked_in_ids:
             messagebox.showinfo("Not checked in", "This volunteer is not currently checked in.")
             return
