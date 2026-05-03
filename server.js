@@ -34,11 +34,22 @@ db.serialize(() => {
   // Safely attempt to add the role column for backwards compatibility
   db.run(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'volunteer'`, (err) => {
       // It's fine if this errors out (meaning the column already exists)
-      
+
       // Now it's safe to update existing admin and insert default
       db.run(`UPDATE users SET role = 'admin' WHERE username = 'admin'`);
       const defaultHash = hashPassword('admin');
       db.run(`INSERT OR IGNORE INTO users (username, password, role) VALUES ('admin', '${defaultHash}', 'admin')`);
+  });
+
+  // ── Items table: safely migrate new columns ──────────────────────────────
+  db.run(`ALTER TABLE Items ADD COLUMN SKU TEXT DEFAULT ''`, (err) => {
+    if (err && !err.message.includes('duplicate column')) console.error("Items.SKU migration:", err.message);
+  });
+  db.run(`ALTER TABLE Items ADD COLUMN isKit INTEGER DEFAULT 0`, (err) => {
+    if (err && !err.message.includes('duplicate column')) console.error("Items.isKit migration:", err.message);
+  });
+  db.run(`ALTER TABLE Items ADD COLUMN KitContents TEXT DEFAULT ''`, (err) => {
+    if (err && !err.message.includes('duplicate column')) console.error("Items.KitContents migration:", err.message);
   });
 });
 
@@ -103,10 +114,10 @@ function authenticate(req, res, next) {
         const [header, payloadObj, signature] = token.split('.');
         const validSignature = crypto.createHmac('sha256', JWT_SECRET).update(`${header}.${payloadObj}`).digest('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         if (signature !== validSignature) throw new Error();
-        
+
         const payload = JSON.parse(Buffer.from(payloadObj, 'base64').toString());
         if (payload.exp < Date.now()) return res.status(401).json({error: 'Session expired. Please log in again.'});
-        
+
         req.user = payload;
         next();
     } catch (e) {
@@ -144,7 +155,7 @@ app.post('/api/register', authenticate, requireAdmin, (req, res) => {
     const { username, password, role } = req.body;
     const assignedRole = role === 'admin' ? 'admin' : 'volunteer';
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
-    
+
     db.run(`INSERT INTO users (username, password, role) VALUES (?, ?, ?)`, [username, hashPassword(password), assignedRole], function(err) {
         if (err) {
             if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'Username already exists' });
@@ -182,7 +193,7 @@ app.post('/api/forgot-password', (req, res) => {
     db.get(`SELECT id FROM users WHERE username = ?`, [username], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(404).json({ error: 'User not found' });
-        
+
         const resetToken = crypto.randomBytes(3).toString('hex').toUpperCase(); // 6 chars simple token for demo
         // Expire in 1 hour
         db.run(`UPDATE users SET resetToken = ?, resetTokenExpires = datetime('now', '+1 hour') WHERE id = ?`, [resetToken, row.id], function(err2) {
@@ -261,16 +272,48 @@ app.delete('/api/visitors/:id', requireAdmin, (req, res) => {
 
 // Items
 app.get('/api/items', (req, res) => query(res, 'SELECT * FROM Items ORDER BY itemID DESC'));
+
 app.post('/api/items', requireAdmin, (req, res) => {
-  const { ItemName, Category, Size, Condition, Amount, Quantity } = req.body;
-  const sql = `INSERT INTO Items (ItemName, Category, Size, Condition, Amount, Quantity) VALUES (?, ?, ?, ?, ?, ?)`;
-  execute(res, sql, [ItemName, parseInt(Category)||1, Size, Condition, parseFloat(Amount)||0, parseInt(Quantity)||1]);
+  const { ItemName, SKU, Category, Size, Condition, Amount, Quantity, isKit, KitContents } = req.body;
+  const sql = `INSERT INTO Items (ItemName, SKU, Category, Size, Condition, Amount, Quantity, isKit, KitContents)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  execute(res, sql, [
+    ItemName,
+    SKU || '',
+    parseInt(Category) || 1,
+    Size,
+    Condition,
+    parseFloat(Amount) || 0,
+    parseInt(Quantity) || 1,
+    isKit ? 1 : 0,
+    isKit ? (KitContents || '') : '',
+  ]);
 });
+
 app.put('/api/items/:id', requireAdmin, (req, res) => {
-  const { ItemName, Category, Size, Condition, Amount, Quantity } = req.body;
-  const sql = `UPDATE Items SET ItemName=?, Category=?, Size=?, Condition=?, Amount=?, Quantity=? WHERE itemID=?`;
-  execute(res, sql, [ItemName, parseInt(Category)||1, Size, Condition, parseFloat(Amount)||0, parseInt(Quantity)||0, req.params.id]);
+  const { ItemName, SKU, Category, Size, Condition, Amount, Quantity, isKit, KitContents } = req.body;
+
+  // Allow quantity-only updates (e.g. from the +/- buttons on the inventory page)
+  if (Quantity !== undefined && Object.keys(req.body).length === 1) {
+    return execute(res, `UPDATE Items SET Quantity=? WHERE itemID=?`, [parseInt(Quantity) || 0, req.params.id]);
+  }
+
+  const sql = `UPDATE Items SET ItemName=?, SKU=?, Category=?, Size=?, Condition=?, Amount=?, Quantity=?, isKit=?, KitContents=?
+               WHERE itemID=?`;
+  execute(res, sql, [
+    ItemName,
+    SKU || '',
+    parseInt(Category) || 1,
+    Size,
+    Condition,
+    parseFloat(Amount) || 0,
+    parseInt(Quantity) || 0,
+    isKit ? 1 : 0,
+    isKit ? (KitContents || '') : '',
+    req.params.id,
+  ]);
 });
+
 app.delete('/api/items/:id', requireAdmin, (req, res) => {
     execute(res, 'DELETE FROM Items WHERE itemID=?', [req.params.id]);
 });
@@ -281,7 +324,7 @@ app.get('/api/categories', (req, res) => query(res, 'SELECT * FROM Category'));
 // CheckOuts (Giving Items to Visitors)
 app.get('/api/checkouts', (req, res) => {
     query(res, `
-        SELECT c.checkoutID, c.CheckoutDate, c.Quanlity, i.ItemName, v.VName as VisitorName, v.Childfirstname
+        SELECT c.checkoutID, c.CheckoutDate, c.Quanlity, i.ItemName, i.SKU, v.VName as VisitorName, v.Childfirstname
         FROM ItemCheckOut c
         LEFT JOIN Items i ON c.ItemID = i.itemID
         LEFT JOIN Visitors v ON c.VisitorID = v.VisitorID
@@ -296,7 +339,7 @@ app.post('/api/checkouts', (req, res) => {
       if (err) return res.status(500).json({error: err.message});
       if (!row) return res.status(404).json({error: 'Item not found in inventory'});
       if (row.Quantity < qty) return res.status(400).json({error: `Not enough stock. Only ${row.Quantity} ${row.ItemName} left.`});
-      
+
       const newQty = row.Quantity - qty;
       db.run(`UPDATE Items SET Quantity=? WHERE itemID=?`, [newQty, ItemID], function(e) {
           if (e) return res.status(500).json({error: e.message});
@@ -304,8 +347,8 @@ app.post('/api/checkouts', (req, res) => {
       });
   });
 });
+
 app.delete('/api/checkouts/:id', requireAdmin, (req, res) => {
-    // When deleting a checkout, should we return items to inventory? Yes, ideally.
     db.get('SELECT ItemID, Quanlity FROM ItemCheckOut WHERE checkoutID=?', [req.params.id], (err, row) => {
         if (err || !row) return res.status(500).json({error: err ? err.message : 'Not found'});
         db.run('UPDATE Items SET Quantity = Quantity + ? WHERE itemID=?', [row.Quanlity, row.ItemID], (err2) => {
