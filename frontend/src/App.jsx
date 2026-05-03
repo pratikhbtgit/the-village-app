@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, us
 import axios from 'axios';
 import { Users, UserPlus, Package, Archive, Clock, Home, LogOut, CheckSquare, X, Edit, Trash2, BarChart, Menu, Shield } from 'lucide-react';
 import { format } from 'date-fns';
+import villageLogo from './assets/village-logo.svg';
 
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? 'http://localhost:3001/api' 
@@ -57,9 +58,9 @@ function Sidebar({ user, onLogout }) {
 
   return (
     <div className="sidebar" style={{display: 'flex', flexDirection: 'column'}}>
-      <div className="sidebar-header">
-          <h1>THE VILLAGE</h1>
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+      <div className="sidebar-header" style={{padding: '10px', justifyContent: 'center', position: 'relative'}}>
+          <img src={villageLogo} alt="The Village" style={{width: '100%', height: 'auto', display: 'block'}} />
+          <button className="mobile-menu-btn" style={{position: 'absolute', top: '10px', right: '10px'}} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
       </div>
@@ -1036,7 +1037,7 @@ function AuthManager({ onLogin }) {
     return (
         <div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)'}}>
             <div className="card" style={{width: '400px', textAlign: 'center'}}>
-               <h1 style={{color: 'var(--accent-primary)', marginBottom: '2rem'}}>THE VILLAGE</h1>
+               <img src={villageLogo} alt="The Village" style={{display: 'block', margin: '0 auto 2rem', maxWidth: '100%', maxHeight: '120px'}} />
                {msg.text && <div style={{color: msg.type === 'error' ? 'var(--accent-danger)' : 'var(--accent-success)', marginBottom: '1rem'}}>{msg.text}</div>}
                <form onSubmit={handleAction} style={{textAlign: 'left'}}>
                    <div className="form-group">
