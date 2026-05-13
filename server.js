@@ -9,7 +9,7 @@ const app = express();
 app.use(cors({
   origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
   credentials: true
-}))
+}));
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
@@ -46,13 +46,13 @@ function base64url(str) {
 function generateToken(user) {
   const header = base64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const payload = base64url(JSON.stringify({
-  id: user.id,
-  username: user.username,
-  role: user.role,
-  volunteer_id: user.volunteer_id || null,
-  permissions: user.permissions || [],
-  exp: Date.now() + 86400000
-}));
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    volunteer_id: user.volunteer_id || null,
+    permissions: user.permissions || [],
+    exp: Date.now() + 86400000
+  }));
   const signature = crypto
     .createHmac('sha256', JWT_SECRET)
     .update(`${header}.${payload}`)
@@ -280,6 +280,11 @@ db.serialize(() => {
   db.run(`ALTER TABLE users ADD COLUMN volunteer_id INTEGER`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN created_at TEXT DEFAULT CURRENT_TIMESTAMP`, () => {});
 
+  // Add SKU, isKit, KitContents columns to Items if they don't exist yet
+  db.run(`ALTER TABLE Items ADD COLUMN SKU TEXT`, () => {});
+  db.run(`ALTER TABLE Items ADD COLUMN isKit INTEGER NOT NULL DEFAULT 0`, () => {});
+  db.run(`ALTER TABLE Items ADD COLUMN KitContents TEXT`, () => {});
+
   db.run(`
     INSERT OR IGNORE INTO roles (id, name, description) VALUES
     (1, 'admin', 'Full system access'),
@@ -343,17 +348,6 @@ db.serialize(() => {
     INSERT OR IGNORE INTO users (id, username, password_hash, role_id, is_active)
     VALUES (1, 'admin', ?, 1, 1)
   `, [defaultHash]);
-
-  // ── Items table: safely migrate SKU/Kit columns ──────────────────────────
-  db.run(`ALTER TABLE Items ADD COLUMN SKU TEXT DEFAULT ''`, (err) => {
-    if (err && !err.message.includes('duplicate column')) console.error('Items.SKU migration:', err.message);
-  });
-  db.run(`ALTER TABLE Items ADD COLUMN isKit INTEGER DEFAULT 0`, (err) => {
-    if (err && !err.message.includes('duplicate column')) console.error('Items.isKit migration:', err.message);
-  });
-  db.run(`ALTER TABLE Items ADD COLUMN KitContents TEXT DEFAULT ''`, (err) => {
-    if (err && !err.message.includes('duplicate column')) console.error('Items.KitContents migration:', err.message);
-  });
 });
 
 app.post('/api/login', async (req, res) => {
@@ -634,40 +628,38 @@ app.delete('/api/visitors/:id', requirePermission('visitors.delete'), (req, res)
   execute(res, 'DELETE FROM Visitors WHERE VisitorID=?', [req.params.id]);
 });
 
+// ─── Items / Inventory (SKU + Kit Items support) ──────────────────────────────
+
 app.get('/api/items', requirePermission('items.read'), (req, res) => {
   query(res, 'SELECT * FROM Items ORDER BY itemID DESC');
 });
 
 app.post('/api/items', requirePermission('items.create'), (req, res) => {
   const { ItemName, SKU, Category, Size, Condition, Amount, Quantity, isKit, KitContents } = req.body;
-  const sql = `INSERT INTO Items (ItemName, SKU, Category, Size, Condition, Amount, Quantity, isKit, KitContents)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const sql = `INSERT INTO Items (ItemName, SKU, Category, Size, Condition, Amount, Quantity, isKit, KitContents) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   execute(res, sql, [
     ItemName,
-    SKU || '',
+    SKU || null,
     parseInt(Category) || 1,
     Size,
     Condition,
     parseFloat(Amount) || 0,
     parseInt(Quantity) || 1,
     isKit ? 1 : 0,
-    isKit ? (KitContents || '') : '',
+    isKit ? (KitContents || '') : ''
   ]);
 });
 
 app.put('/api/items/:id', requirePermission('items.update'), (req, res) => {
   const { ItemName, SKU, Category, Size, Condition, Amount, Quantity, isKit, KitContents } = req.body;
-
-  // Allow quantity-only updates (e.g. from the +/- buttons on the inventory page)
+  // Allow partial update (e.g. quantity-only update from the +/- buttons)
   if (Quantity !== undefined && Object.keys(req.body).length === 1) {
     return execute(res, `UPDATE Items SET Quantity=? WHERE itemID=?`, [parseInt(Quantity) || 0, req.params.id]);
   }
-
-  const sql = `UPDATE Items SET ItemName=?, SKU=?, Category=?, Size=?, Condition=?, Amount=?, Quantity=?, isKit=?, KitContents=?
-               WHERE itemID=?`;
+  const sql = `UPDATE Items SET ItemName=?, SKU=?, Category=?, Size=?, Condition=?, Amount=?, Quantity=?, isKit=?, KitContents=? WHERE itemID=?`;
   execute(res, sql, [
     ItemName,
-    SKU || '',
+    SKU || null,
     parseInt(Category) || 1,
     Size,
     Condition,
@@ -675,7 +667,7 @@ app.put('/api/items/:id', requirePermission('items.update'), (req, res) => {
     parseInt(Quantity) || 0,
     isKit ? 1 : 0,
     isKit ? (KitContents || '') : '',
-    req.params.id,
+    req.params.id
   ]);
 });
 
@@ -686,6 +678,8 @@ app.delete('/api/items/:id', requirePermission('items.delete'), (req, res) => {
 app.get('/api/categories', requirePermission('items.read'), (req, res) => {
   query(res, 'SELECT * FROM Category');
 });
+
+// ─── Checkouts ────────────────────────────────────────────────────────────────
 
 app.get('/api/checkouts', requirePermission('checkouts.read'), (req, res) => {
   query(
@@ -735,6 +729,8 @@ app.delete('/api/checkouts/:id', requirePermission('checkouts.delete'), (req, re
     });
   });
 });
+
+// ─── Reports ──────────────────────────────────────────────────────────────────
 
 app.get('/api/reports/summary', requirePermission('reports.read'), async (req, res) => {
   try {
