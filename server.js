@@ -9,7 +9,7 @@ const app = express();
 app.use(cors({
   origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
   credentials: true
-}))
+}));
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
@@ -46,13 +46,13 @@ function base64url(str) {
 function generateToken(user) {
   const header = base64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const payload = base64url(JSON.stringify({
-  id: user.id,
-  username: user.username,
-  role: user.role,
-  volunteer_id: user.volunteer_id || null, 
-  permissions: user.permissions || [],
-  exp: Date.now() + 86400000
-}));
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    volunteer_id: user.volunteer_id || null,
+    permissions: user.permissions || [],
+    exp: Date.now() + 86400000
+  }));
   const signature = crypto
     .createHmac('sha256', JWT_SECRET)
     .update(`${header}.${payload}`)
@@ -278,7 +278,19 @@ db.serialize(() => {
   db.run(`ALTER TABLE users ADD COLUMN resetTokenExpires DATETIME`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN volunteer_id INTEGER`, () => {});
-  db.run(`ALTER TABLE users ADD COLUMN created_at TEXT DEFAULT CURRENT_TIMESTAMP`, () => {});
+  // SQLite forbids CURRENT_TIMESTAMP as a default in ALTER TABLE; add column, then backfill.
+  db.run(`ALTER TABLE users ADD COLUMN created_at TEXT`, () => {});
+  db.run(`UPDATE users SET created_at = datetime('now') WHERE created_at IS NULL`, () => {});
+
+  // Migrate legacy users schema (pre-RBAC: had `password` and string `role`)
+  // Column adds are safe to run before role seeding; data backfill happens after.
+  db.run(`ALTER TABLE users ADD COLUMN password_hash TEXT`, () => {});
+  db.run(`ALTER TABLE users ADD COLUMN role_id INTEGER`, () => {});
+
+  // Add SKU, isKit, KitContents columns to Items if they don't exist yet
+  db.run(`ALTER TABLE Items ADD COLUMN SKU TEXT`, () => {});
+  db.run(`ALTER TABLE Items ADD COLUMN isKit INTEGER NOT NULL DEFAULT 0`, () => {});
+  db.run(`ALTER TABLE Items ADD COLUMN KitContents TEXT`, () => {});
 
   db.run(`
     INSERT OR IGNORE INTO roles (id, name, description) VALUES
@@ -337,6 +349,12 @@ db.serialize(() => {
 
     (4,19)
   `);
+
+  // Backfill legacy users now that roles are seeded (no-op if columns missing)
+  db.run(`UPDATE users SET password_hash = password WHERE password_hash IS NULL AND password IS NOT NULL`, () => {});
+  db.run(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = users.role) WHERE role_id IS NULL AND role IS NOT NULL`, () => {});
+  db.run(`UPDATE users SET role_id = 1 WHERE role_id IS NULL AND username = 'admin'`, () => {});
+  db.run(`UPDATE users SET role_id = 2 WHERE role_id IS NULL`, () => {});
 
   const defaultHash = hashPassword('admin');
   db.run(`
@@ -624,20 +642,47 @@ app.delete('/api/visitors/:id', requirePermission('visitors.delete'), (req, res)
   execute(res, 'DELETE FROM Visitors WHERE VisitorID=?', [req.params.id]);
 });
 
+// ─── Items / Inventory (SKU + Kit Items support) ──────────────────────────────
+
 app.get('/api/items', requirePermission('items.read'), (req, res) => {
   query(res, 'SELECT * FROM Items ORDER BY itemID DESC');
 });
 
 app.post('/api/items', requirePermission('items.create'), (req, res) => {
-  const { ItemName, Category, Size, Condition, Amount, Quantity } = req.body;
-  const sql = `INSERT INTO Items (ItemName, Category, Size, Condition, Amount, Quantity) VALUES (?, ?, ?, ?, ?, ?)`;
-  execute(res, sql, [ItemName, parseInt(Category) || 1, Size, Condition, parseFloat(Amount) || 0, parseInt(Quantity) || 1]);
+  const { ItemName, SKU, Category, Size, Condition, Amount, Quantity, isKit, KitContents } = req.body;
+  const sql = `INSERT INTO Items (ItemName, SKU, Category, Size, Condition, Amount, Quantity, isKit, KitContents) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  execute(res, sql, [
+    ItemName,
+    SKU || null,
+    parseInt(Category) || 1,
+    Size,
+    Condition,
+    parseFloat(Amount) || 0,
+    parseInt(Quantity) || 1,
+    isKit ? 1 : 0,
+    isKit ? (KitContents || '') : ''
+  ]);
 });
 
 app.put('/api/items/:id', requirePermission('items.update'), (req, res) => {
-  const { ItemName, Category, Size, Condition, Amount, Quantity } = req.body;
-  const sql = `UPDATE Items SET ItemName=?, Category=?, Size=?, Condition=?, Amount=?, Quantity=? WHERE itemID=?`;
-  execute(res, sql, [ItemName, parseInt(Category) || 1, Size, Condition, parseFloat(Amount) || 0, parseInt(Quantity) || 0, req.params.id]);
+  const { ItemName, SKU, Category, Size, Condition, Amount, Quantity, isKit, KitContents } = req.body;
+  // Allow partial update (e.g. quantity-only update from the +/- buttons)
+  if (Quantity !== undefined && Object.keys(req.body).length === 1) {
+    return execute(res, `UPDATE Items SET Quantity=? WHERE itemID=?`, [parseInt(Quantity) || 0, req.params.id]);
+  }
+  const sql = `UPDATE Items SET ItemName=?, SKU=?, Category=?, Size=?, Condition=?, Amount=?, Quantity=?, isKit=?, KitContents=? WHERE itemID=?`;
+  execute(res, sql, [
+    ItemName,
+    SKU || null,
+    parseInt(Category) || 1,
+    Size,
+    Condition,
+    parseFloat(Amount) || 0,
+    parseInt(Quantity) || 0,
+    isKit ? 1 : 0,
+    isKit ? (KitContents || '') : '',
+    req.params.id
+  ]);
 });
 
 app.delete('/api/items/:id', requirePermission('items.delete'), (req, res) => {
@@ -648,11 +693,13 @@ app.get('/api/categories', requirePermission('items.read'), (req, res) => {
   query(res, 'SELECT * FROM Category');
 });
 
+// ─── Checkouts ────────────────────────────────────────────────────────────────
+
 app.get('/api/checkouts', requirePermission('checkouts.read'), (req, res) => {
   query(
     res,
     `
-    SELECT c.checkoutID, c.CheckoutDate, c.Quanlity, i.ItemName, v.VName as VisitorName, v.Childfirstname
+    SELECT c.checkoutID, c.CheckoutDate, c.Quanlity, i.ItemName, i.SKU, v.VName as VisitorName, v.Childfirstname
     FROM ItemCheckOut c
     LEFT JOIN Items i ON c.ItemID = i.itemID
     LEFT JOIN Visitors v ON c.VisitorID = v.VisitorID
@@ -696,6 +743,8 @@ app.delete('/api/checkouts/:id', requirePermission('checkouts.delete'), (req, re
     });
   });
 });
+
+// ─── Reports ──────────────────────────────────────────────────────────────────
 
 app.get('/api/reports/summary', requirePermission('reports.read'), async (req, res) => {
   try {

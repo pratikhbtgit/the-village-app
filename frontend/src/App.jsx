@@ -41,6 +41,193 @@ axios.interceptors.response.use(response => response, error => {
   return Promise.reject(error);
 });
 
+// ─── SKU Reference Data (from The-Village-SKU-s-Rev1.xlsx) ───────────────────
+
+const SKU_DEPARTMENTS = [
+  { code: '01', label: 'Clothes' },
+  { code: '02', label: 'Babies' },
+  { code: '03', label: 'Winter' },
+  { code: '04', label: 'School Supplies' },
+  { code: '05', label: 'Bedding' },
+  { code: '06', label: 'Independent Living' },
+  { code: '07', label: 'Toiletries' },
+  { code: '08', label: 'Beauty' },
+  { code: '09', label: 'Tech' },
+  { code: '10', label: 'Accessories' },
+  { code: '11', label: 'Crafts' },
+  { code: '12', label: 'Toys' },
+  { code: '13', label: 'Bikes' },
+  { code: '14', label: 'Travel' },
+  { code: '15', label: 'Furniture' },
+  { code: '16', label: 'Shopping Bags' },
+  { code: '17', label: 'Footwear' },
+  { code: '18', label: 'Giving Machine' },
+];
+
+const SKU_ITEMS_BY_DEPT = {
+  '01': [
+    { code: '01', label: 'Pants' },
+    { code: '02', label: 'Shirt' },
+    { code: '03', label: 'Dress' },
+    { code: '04', label: 'Shorts' },
+    { code: '05', label: 'Hoodie' },
+    { code: '06', label: 'Formal Dress' },
+    { code: '07', label: 'Formal Mens Suit' },
+    { code: '08', label: 'Socks' },
+    { code: '09', label: 'Underwear' },
+    { code: '10', label: 'Pajamas' },
+    { code: '11', label: 'Bagged Outfit' },
+    { code: '12', label: 'Belt' },
+    { code: '13', label: 'Bras' },
+    { code: '14', label: 'Tie' },
+    { code: '15', label: 'Baseball Cap' },
+  ],
+  '02': [
+    { code: '01', label: 'Diapers' },
+    { code: '02', label: 'Pull Ups' },
+    { code: '03', label: 'Wipes' },
+    { code: '04', label: 'Bibs' },
+    { code: '05', label: 'Burpers' },
+    { code: '06', label: 'Diaper Bag' },
+    { code: '07', label: 'Crib' },
+    { code: '08', label: 'Crib Mattress' },
+    { code: '09', label: 'Car Seat' },
+    { code: '10', label: 'Stroller' },
+    { code: '11', label: 'Bouncer' },
+    { code: '12', label: 'Walker' },
+    { code: '13', label: 'Potty Chair' },
+    { code: '14', label: 'Baby Bath' },
+    { code: '15', label: 'Baby Shampoo' },
+    { code: '16', label: 'Baby Soap' },
+    { code: '17', label: 'Bum Cream' },
+    { code: '18', label: 'Baby Carrier' },
+    { code: '19', label: 'Car Seat Cover' },
+    { code: '20', label: 'Swaddlers' },
+    { code: '21', label: 'Highchair' },
+    { code: '22', label: 'Misc. Baby Items' },
+    { code: '23', label: 'Toddler Mattress' },
+    { code: '24', label: 'Toddler Bed' },
+    { code: '25', label: 'Crib Sheets' },
+  ],
+  '03': [
+    { code: '01', label: 'Coats' },
+    { code: '02', label: 'Winter Hat' },
+    { code: '03', label: 'Gloves' },
+  ],
+  '04': [
+    { code: '01', label: 'Book Bag' },
+    { code: '02', label: 'School Supplies' },
+  ],
+  '05': [
+    { code: '01', label: 'Pillow' },
+    { code: '02', label: 'Blanket/Quilt' },
+    { code: '03', label: 'Weighted Blanket' },
+    { code: '04', label: 'Twin Sheets' },
+  ],
+  '06': [
+    { code: '01', label: 'Independent Living Kit' },
+    { code: '02', label: 'Laundry Soap' },
+    { code: '03', label: 'Food Box' },
+    { code: '04', label: 'Toilet Paper' },
+    { code: '05', label: 'Gift Card' },
+  ],
+  '07': [
+    { code: '01', label: 'Shampoo' },
+    { code: '02', label: 'Conditioner' },
+    { code: '03', label: 'Toothpaste' },
+    { code: '04', label: 'Toothbrush' },
+    { code: '05', label: 'Floss' },
+    { code: '06', label: 'Body Wash' },
+    { code: '07', label: 'Deodorant' },
+    { code: '08', label: 'Shaving Cream' },
+    { code: '09', label: 'Razors' },
+    { code: '10', label: 'Feminine Products' },
+    { code: '11', label: 'Lotion' },
+    { code: '12', label: 'Misc. Hygiene Items' },
+    { code: '13', label: 'Hair Brush' },
+    { code: '14', label: 'Hair Accessories' },
+  ],
+  '08': [
+    { code: '01', label: 'Makeup' },
+    { code: '02', label: 'Jewelry' },
+  ],
+  '09': [
+    { code: '01', label: 'Headphones' },
+    { code: '02', label: 'MP3 Player' },
+    { code: '03', label: 'Speaker' },
+  ],
+  '10': [
+    { code: '01', label: 'Purse' },
+    { code: '02', label: 'Wallet' },
+  ],
+  '11': [
+    { code: '01', label: 'Crocheting Kit' },
+    { code: '02', label: 'Art Supply' },
+    { code: '03', label: 'Craft Items' },
+    { code: '04', label: 'Sunglasses' },
+    { code: '05', label: 'Life Jacket' },
+  ],
+  '12': [
+    { code: '01', label: 'Books' },
+    { code: '02', label: 'Toys' },
+    { code: '03', label: 'Stuffies' },
+    { code: '04', label: 'Fidget/Sensory Items' },
+  ],
+  '13': [
+    { code: '01', label: 'Helmet' },
+    { code: '02', label: 'Bicycle' },
+    { code: '03', label: 'Bike Lock' },
+    { code: '04', label: 'Misc. Bike Gear' },
+  ],
+  '14': [
+    { code: '01', label: 'Suitcase' },
+    { code: '02', label: 'Duffle Bag' },
+  ],
+  '15': [
+    { code: '01', label: 'Dressers' },
+    { code: '02', label: 'Misc. Furniture' },
+    { code: '03', label: 'Twin Bed' },
+    { code: '04', label: 'Bunk Beds' },
+  ],
+  '16': [
+    { code: '01', label: 'Shopping Bags (All)' },
+  ],
+  '17': [
+    { code: '01', label: 'Shoes (Kids 01-07)' },
+    { code: '08', label: 'Shoes (Teen/Adult 08-15)' },
+    { code: '02', label: 'Winter Boots (Kids 01-07)' },
+    { code: '09', label: 'Winter Boots (Teen/Adult 08-15)' },
+  ],
+  '18': [
+    { code: '01', label: 'GM Bike' },
+    { code: '02', label: 'GM Suitcase' },
+    { code: '03', label: 'GM Pajamas' },
+    { code: '04', label: 'GM Underwear Bundle' },
+    { code: '05', label: 'GM Pots & Pans' },
+  ],
+};
+
+const SKU_SIZES = [
+  { code: '024M', label: '0-24 Months' },
+  { code: '025T', label: '2T-5T' },
+  { code: '046X', label: '4-6x' },
+  { code: '00', label: 'XS' },
+  { code: '01', label: 'SM' },
+  { code: '02', label: 'MED' },
+  { code: '03', label: 'LG' },
+  { code: '04', label: 'XL' },
+  { code: '05', label: 'XXL' },
+  { code: 'ALL', label: 'All Sizes' },
+  { code: 'N/A', label: 'N/A (No Size)' },
+];
+
+function buildSKU(deptCode, itemCode, sizeCode) {
+  if (!deptCode || !itemCode) return '';
+  return `${deptCode}-${itemCode}-${sizeCode || 'N/A'}`;
+}
+
+// ─── Shared Components ────────────────────────────────────────────────────────
+
 function ProtectedRoute({ children, permission }) {
   const token = localStorage.getItem('village_token');
   const user = getStoredUser();
@@ -80,7 +267,7 @@ function Modal({ isOpen, onClose, title, children }) {
           width: '520px',
           maxWidth: '95vw',
           maxHeight: '90vh',
-          overflow: 'hidden',
+          overflow: 'auto',
           backgroundColor: 'var(--bg-primary)',
           border: '1px solid var(--border-light)',
           borderRadius: 'var(--radius-lg)',
@@ -470,35 +657,108 @@ function TimeClock({ currentUser }) {
   );
 }
 
+// ─── Inventory (updated: SKU system + Kit Items) ──────────────────────────────
+
 function Inventory({ currentUser }) {
+  const EMPTY_FORM = {
+    ItemName: '',
+    SKU: '',
+    deptCode: '',
+    itemCode: '',
+    sizeCode: 'N/A',
+    Category: '',
+    Size: '',
+    Condition: '',
+    Amount: '0',
+    Quantity: '1',
+    isKit: false,
+    KitContents: '',
+  };
+
   const [items, setItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ ItemName: '', Category: '', Size: '', Condition: '', Amount: '0', Quantity: '1' });
+  const [formData, setFormData] = useState(EMPTY_FORM);
 
   const fetchItems = () => { axios.get(`${API}/items`).then(res => setItems(res.data)) };
   useEffect(() => { fetchItems(); }, []);
 
+  // When dept/item/size dropdowns change, sync Category, Size, SKU, and ItemName
+  const handleDeptChange = (deptCode) => {
+    const dept = SKU_DEPARTMENTS.find(d => d.code === deptCode);
+    setFormData(prev => ({
+      ...prev,
+      deptCode,
+      itemCode: '',
+      SKU: '',
+      Category: deptCode,
+      ItemName: '',
+    }));
+  };
+
+  const handleItemChange = (itemCode) => {
+    const { deptCode, sizeCode } = formData;
+    const itemDef = (SKU_ITEMS_BY_DEPT[deptCode] || []).find(i => i.code === itemCode);
+    const sku = buildSKU(deptCode, itemCode, sizeCode);
+    setFormData(prev => ({
+      ...prev,
+      itemCode,
+      SKU: sku,
+      ItemName: itemDef ? itemDef.label : prev.ItemName,
+    }));
+  };
+
+  const handleSizeChange = (sizeCode) => {
+    const sizeDef = SKU_SIZES.find(s => s.code === sizeCode);
+    const sku = buildSKU(formData.deptCode, formData.itemCode, sizeCode);
+    setFormData(prev => ({
+      ...prev,
+      sizeCode,
+      Size: sizeDef ? sizeDef.label : sizeCode,
+      SKU: sku,
+    }));
+  };
+
   const openAdd = () => {
     setEditingId(null);
-    setFormData({ ItemName: '', Category: '', Size: '', Condition: '', Amount: '0', Quantity: '1' });
+    setFormData(EMPTY_FORM);
     setIsModalOpen(true);
   };
 
   const openEdit = (item) => {
     setEditingId(item.itemID);
-    setFormData(item);
+    // Parse deptCode/itemCode/sizeCode back from stored SKU if possible
+    const parts = (item.SKU || '').split('-');
+    setFormData({
+      ...EMPTY_FORM,
+      ...item,
+      deptCode: parts[0] || '',
+      itemCode: parts[1] || '',
+      sizeCode: parts[2] || 'N/A',
+      isKit: item.isKit === 1 || item.isKit === true,
+    });
     setIsModalOpen(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const req = editingId ? axios.put(`${API}/items/${editingId}`, formData) : axios.post(`${API}/items`, formData);
-    req.then(() => {
-      setIsModalOpen(false);
-      fetchItems();
-    });
+    const payload = {
+      ItemName: formData.ItemName,
+      SKU: formData.SKU,
+      Category: formData.Category,
+      Size: formData.Size,
+      Condition: formData.Condition,
+      Amount: formData.Amount,
+      Quantity: formData.Quantity,
+      isKit: formData.isKit ? 1 : 0,
+      KitContents: formData.isKit ? formData.KitContents : '',
+    };
+    const req = editingId
+      ? axios.put(`${API}/items/${editingId}`, payload)
+      : axios.post(`${API}/items`, payload);
+    req.then(() => { setIsModalOpen(false); fetchItems(); })
+       .catch(err => alert(err.response?.data?.error || err.message));
   };
 
   const handleUpdateQuantity = (id, newQuantity) => {
@@ -512,9 +772,12 @@ function Inventory({ currentUser }) {
     }
   };
 
-  const filteredItems = items.filter(i => 
+  const currentDeptItems = SKU_ITEMS_BY_DEPT[formData.deptCode] || [];
+
+  const filteredItems = items.filter(i =>
     (i.ItemName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (i.Category || '').toString().toLowerCase().includes(searchTerm.toLowerCase())
+    (i.Category || '').toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (i.SKU || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -522,29 +785,67 @@ function Inventory({ currentUser }) {
       <div className="page-header">
         <h2 className="page-title">Inventory</h2>
         <div style={{display: 'flex', gap: '1rem'}}>
-          <input 
-            type="text" 
-            className="input" 
-            placeholder="Search items..." 
-            value={searchTerm} 
+          <input
+            type="text"
+            className="input"
+            placeholder="Search by name, category, or SKU..."
+            value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            style={{width: '250px'}}
+            style={{width: '280px'}}
           />
           {hasPermission(currentUser, 'items.create') && (
             <button className="btn btn-primary" onClick={openAdd}><Package size={18}/> Add Item</button>
           )}
         </div>
       </div>
+
       <div className="table-container">
         <table>
           <thead>
-            <tr><th>Item Name</th><th>Category ID</th><th>Size</th><th>Condition</th><th>Quantity</th><th>Actions</th></tr>
+            <tr>
+              <th>Item Name</th>
+              <th>SKU</th>
+              <th>Department</th>
+              <th>Size</th>
+              <th>Condition</th>
+              <th>Quantity</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody>
             {filteredItems.map(i => (
               <tr key={i.itemID}>
-                <td>{i.ItemName}</td>
-                <td>{i.Category}</td>
+                <td>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                    {i.isKit ? (
+                      <span style={{
+                        background: 'rgba(139,92,246,0.15)',
+                        color: '#8b5cf6',
+                        padding: '0.15rem 0.5rem',
+                        borderRadius: '12px',
+                        fontSize: '0.7rem',
+                        fontWeight: 'bold',
+                        whiteSpace: 'nowrap',
+                      }}>KIT</span>
+                    ) : null}
+                    {i.ItemName}
+                  </div>
+                  {i.isKit && i.KitContents ? (
+                    <div style={{fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.2rem'}}>
+                      {i.KitContents}
+                    </div>
+                  ) : null}
+                </td>
+                <td>
+                  <code style={{
+                    background: 'var(--bg-secondary)',
+                    padding: '0.15rem 0.4rem',
+                    borderRadius: '4px',
+                    fontSize: '0.8rem',
+                    letterSpacing: '0.05em',
+                  }}>{i.SKU || '—'}</code>
+                </td>
+                <td>{SKU_DEPARTMENTS.find(d => d.code === (i.Category || '').toString().padStart(2,'0'))?.label || i.Category}</td>
                 <td>{i.Size}</td>
                 <td>{i.Condition}</td>
                 <td>
@@ -576,14 +877,97 @@ function Inventory({ currentUser }) {
         </table>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Item" : "Add Inventory Item"}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? 'Edit Item' : 'Add Inventory Item'}>
         <form onSubmit={handleSubmit}>
-          <div className="form-group"><label>Item Name</label><input className="input" required value={formData.ItemName} onChange={e => setFormData({...formData, ItemName: e.target.value})} /></div>
-          <div className="form-group"><label>Category ID</label><input className="input" value={formData.Category} onChange={e => setFormData({...formData, Category: e.target.value})} /></div>
-          <div className="form-group"><label>Size</label><input className="input" value={formData.Size} onChange={e => setFormData({...formData, Size: e.target.value})} /></div>
-          <div className="form-group"><label>Condition</label><input className="input" value={formData.Condition} onChange={e => setFormData({...formData, Condition: e.target.value})} /></div>
-          <div className="form-group"><label>Quantity</label><input className="input" type="number" required value={formData.Quantity} onChange={e => setFormData({...formData, Quantity: e.target.value})} /></div>
-          <button type="submit" className="btn btn-primary" style={{width: '100%', justifyContent: 'center'}}>{editingId ? "Update Item" : "Save Item"}</button>
+
+          {/* SKU Builder */}
+          <div style={{background: 'var(--bg-secondary)', borderRadius: '8px', padding: '1rem', marginBottom: '1rem'}}>
+            <label style={{fontWeight: 600, marginBottom: '0.5rem', display: 'block'}}>SKU Builder</label>
+
+            <div className="form-group">
+              <label>Department</label>
+              <select className="input" value={formData.deptCode} onChange={e => handleDeptChange(e.target.value)}>
+                <option value="">-- Select Department --</option>
+                {SKU_DEPARTMENTS.map(d => (
+                  <option key={d.code} value={d.code}>{d.code} – {d.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Item Type</label>
+              <select className="input" value={formData.itemCode} onChange={e => handleItemChange(e.target.value)} disabled={!formData.deptCode}>
+                <option value="">-- Select Item --</option>
+                {currentDeptItems.map(item => (
+                  <option key={item.code} value={item.code}>{item.code} – {item.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Size</label>
+              <select className="input" value={formData.sizeCode} onChange={e => handleSizeChange(e.target.value)}>
+                {SKU_SIZES.map(s => (
+                  <option key={s.code} value={s.code}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {formData.SKU && (
+              <div style={{marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                <span style={{fontSize: '0.85rem', color: 'var(--text-secondary)'}}>Generated SKU:</span>
+                <code style={{background: 'rgba(99,179,159,0.15)', color: 'var(--accent-primary)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: 'bold'}}>
+                  {formData.SKU}
+                </code>
+              </div>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label>Item Name</label>
+            <input className="input" required value={formData.ItemName} onChange={e => setFormData({...formData, ItemName: e.target.value})} placeholder="Auto-filled or enter manually" />
+          </div>
+
+          <div className="form-group">
+            <label>Condition</label>
+            <input className="input" value={formData.Condition} onChange={e => setFormData({...formData, Condition: e.target.value})} placeholder="e.g. New, Good, Fair" />
+          </div>
+
+          <div className="form-group">
+            <label>Quantity</label>
+            <input className="input" type="number" required min="0" value={formData.Quantity} onChange={e => setFormData({...formData, Quantity: e.target.value})} />
+          </div>
+
+          {/* Kit Item Toggle */}
+          <div style={{borderTop: '1px solid var(--border-light)', paddingTop: '1rem', marginTop: '0.5rem'}}>
+            <div className="form-group" style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
+              <input
+                type="checkbox"
+                id="isKitCheckbox"
+                checked={formData.isKit}
+                onChange={e => setFormData({...formData, isKit: e.target.checked, KitContents: e.target.checked ? formData.KitContents : ''})}
+                style={{width: 'auto'}}
+              />
+              <label htmlFor="isKitCheckbox" style={{marginBottom: 0, cursor: 'pointer'}}>This is a Kit (bundle of multiple items)</label>
+            </div>
+
+            {formData.isKit && (
+              <div className="form-group">
+                <label>Kit Contents</label>
+                <input
+                  className="input"
+                  value={formData.KitContents}
+                  onChange={e => setFormData({...formData, KitContents: e.target.value})}
+                  placeholder="e.g. Shirt, Pants, Socks, Underwear"
+                />
+                <small style={{color: 'var(--text-secondary)', fontSize: '0.75rem'}}>Comma-separated list of items included in this kit.</small>
+              </div>
+            )}
+          </div>
+
+          <button type="submit" className="btn btn-primary" style={{width: '100%', justifyContent: 'center', marginTop: '0.5rem'}}>
+            {editingId ? 'Update Item' : 'Save Item'}
+          </button>
         </form>
       </Modal>
     </div>
@@ -728,7 +1112,7 @@ function CheckOut({ currentUser }) {
       <div className="table-container">
         <table>
           <thead>
-            <tr><th>Date</th><th>Visitor / Child</th><th>Item Dispensed</th><th>Amount</th><th>Actions</th></tr>
+            <tr><th>Date</th><th>Visitor / Child</th><th>Item Dispensed</th><th>SKU</th><th>Amount</th><th>Actions</th></tr>
           </thead>
           <tbody>
             {checkouts.map(c => (
@@ -736,6 +1120,7 @@ function CheckOut({ currentUser }) {
                 <td>{c.CheckoutDate ? format(new Date(c.CheckoutDate), 'PP p') : 'N/A'}</td>
                 <td>{c.VisitorName} ({c.Childfirstname})</td>
                 <td>{c.ItemName}</td>
+                <td><code style={{fontSize: '0.8rem'}}>{c.SKU || '—'}</code></td>
                 <td>{c.Quanlity}</td>
                 <td>
                   {hasPermission(currentUser, 'checkouts.delete') && (
@@ -762,7 +1147,7 @@ function CheckOut({ currentUser }) {
             <label>Select Item to Dispense</label>
             <select className="input" value={formData.ItemID} onChange={e => setFormData({...formData, ItemID: e.target.value})}>
               <option value="">-- Choose Item ({items.length} loaded) --</option>
-              {items.filter(i => i.Quantity > 0).map(i => <option key={i.itemID} value={i.itemID}>{i.ItemName} (Stock: {i.Quantity})</option>)}
+              {items.filter(i => i.Quantity > 0).map(i => <option key={i.itemID} value={i.itemID}>{i.ItemName}{i.SKU ? ` [${i.SKU}]` : ''} (Stock: {i.Quantity})</option>)}
             </select>
           </div>
           <div className="form-group">
@@ -886,7 +1271,6 @@ function Reports({ currentUser }) {
         </div>
       </div>
 
-      {/* Top Value Cards */}
       <div className="stat-grid" style={{marginBottom: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem'}}>
         <div className="stat-card" style={{borderColor: 'var(--accent-warning)', borderLeftWidth: '4px'}}>
           <div className="stat-card-title">LOW STOCK ITEMS (&le; 5)</div>
@@ -914,13 +1298,14 @@ function Reports({ currentUser }) {
             {lowStock.length > 0 ? (
               <table>
                 <thead style={{position: 'sticky', top: 0, backgroundColor: 'var(--bg-secondary)'}}>
-                  <tr><th>Item Name</th><th>Category</th><th>Stock</th></tr>
+                  <tr><th>Item Name</th><th>SKU</th><th>Category</th><th>Stock</th></tr>
                 </thead>
                 <tbody>
                   {lowStock.map(i => (
                     <tr key={i.itemID}>
                       <td>{i.ItemName}</td>
-                      <td>{i.Category}</td>
+                      <td><code style={{fontSize: '0.8rem'}}>{i.SKU || '—'}</code></td>
+                      <td>{SKU_DEPARTMENTS.find(d => d.code === (i.Category || '').toString().padStart(2,'0'))?.label || i.Category}</td>
                       <td style={{fontWeight: 'bold', color: 'var(--accent-danger)'}}>{i.Quantity}</td>
                     </tr>
                   ))}
