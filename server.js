@@ -278,7 +278,14 @@ db.serialize(() => {
   db.run(`ALTER TABLE users ADD COLUMN resetTokenExpires DATETIME`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN volunteer_id INTEGER`, () => {});
-  db.run(`ALTER TABLE users ADD COLUMN created_at TEXT DEFAULT CURRENT_TIMESTAMP`, () => {});
+  // SQLite forbids CURRENT_TIMESTAMP as a default in ALTER TABLE; add column, then backfill.
+  db.run(`ALTER TABLE users ADD COLUMN created_at TEXT`, () => {});
+  db.run(`UPDATE users SET created_at = datetime('now') WHERE created_at IS NULL`, () => {});
+
+  // Migrate legacy users schema (pre-RBAC: had `password` and string `role`)
+  // Column adds are safe to run before role seeding; data backfill happens after.
+  db.run(`ALTER TABLE users ADD COLUMN password_hash TEXT`, () => {});
+  db.run(`ALTER TABLE users ADD COLUMN role_id INTEGER`, () => {});
 
   // Add SKU, isKit, KitContents columns to Items if they don't exist yet
   db.run(`ALTER TABLE Items ADD COLUMN SKU TEXT`, () => {});
@@ -342,6 +349,12 @@ db.serialize(() => {
 
     (4,19)
   `);
+
+  // Backfill legacy users now that roles are seeded (no-op if columns missing)
+  db.run(`UPDATE users SET password_hash = password WHERE password_hash IS NULL AND password IS NOT NULL`, () => {});
+  db.run(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = users.role) WHERE role_id IS NULL AND role IS NOT NULL`, () => {});
+  db.run(`UPDATE users SET role_id = 1 WHERE role_id IS NULL AND username = 'admin'`, () => {});
+  db.run(`UPDATE users SET role_id = 2 WHERE role_id IS NULL`, () => {});
 
   const defaultHash = hashPassword('admin');
   db.run(`
@@ -516,6 +529,7 @@ app.put('/api/users/:id', requirePermission('users.update'), async (req, res) =>
 
 app.delete('/api/users/:id', requirePermission('users.delete'), async (req, res) => {
   try {
+    // Prevent deleting yourself
     if (parseInt(req.params.id) === req.user.id) {
       return res.status(400).json({ error: 'You cannot delete your own account.' });
     }
