@@ -1703,7 +1703,7 @@ function AuthManager({ onLogin }) {
   return (
     <div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)'}}>
       <div className="card" style={{width: '400px', textAlign: 'center'}}>
-        <h1 style={{color: 'var(--accent-primary)', marginBottom: '2rem'}}>THE VILLAGE</h1>
+        <img src={villageLogo} alt="The Village" style={{display: 'block', margin: '0 auto 2rem', maxWidth: '100%', maxHeight: '120px'}} />
         {msg.text && (
           <div style={{color: msg.type === 'error' ? 'var(--accent-danger)' : 'var(--accent-success)', marginBottom: '1rem'}}>
             {msg.text}
@@ -1729,53 +1729,10 @@ function AuthManager({ onLogin }) {
             </div>
           )}
 
-    return (
-        <div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)'}}>
-            <div className="card" style={{width: '400px', textAlign: 'center'}}>
-               <img src={villageLogo} alt="The Village" style={{display: 'block', margin: '0 auto 2rem', maxWidth: '100%', maxHeight: '120px'}} />
-               {msg.text && <div style={{color: msg.type === 'error' ? 'var(--accent-danger)' : 'var(--accent-success)', marginBottom: '1rem'}}>{msg.text}</div>}
-               <form onSubmit={handleAction} style={{textAlign: 'left'}}>
-                   <div className="form-group">
-                       <label>Username</label>
-                       <input className="input" required value={cred.username} onChange={e => setCred({...cred, username: e.target.value})}/>
-                   </div>
-                   
-                   {mode === 'reset' && (
-                       <div className="form-group">
-                           <label>Reset Token</label>
-                           <input className="input" required value={cred.token} onChange={e => setCred({...cred, token: e.target.value})}/>
-                       </div>
-                   )}
-                   
-                   {mode !== 'forgot' && (
-                       <div className="form-group">
-                           <label>{mode === 'reset' ? 'New Password' : 'Password'}</label>
-                           <input className="input" required type="password" value={cred.password} onChange={e => setCred({...cred, password: e.target.value})}/>
-                       </div>
-                   )}
-
-                   {(mode === 'register' || mode === 'reset') && (
-                       <div className="form-group">
-                           <label>Confirm Password</label>
-                           <input className="input" required type="password" value={cred.confirmPassword} onChange={e => setCred({...cred, confirmPassword: e.target.value})}/>
-                       </div>
-                   )}
-
-                   <button className="btn btn-primary" style={{width: '100%', justifyContent: 'center', marginTop: '1rem'}}>
-                       {mode === 'login' ? 'Secure Login' : mode === 'register' ? 'Register Account' : mode === 'forgot' ? 'Get Reset Token' : 'Reset Password'}
-                   </button>
-               </form>
-               
-               <div style={{marginTop: '1.5rem', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.5rem'}}>
-                   {mode === 'login' && (
-                       <>
-                           <button type="button" className="btn" style={{background: 'none', color: 'var(--text-secondary)', padding: 0}} onClick={() => {setMode('forgot'); setMsg({type:'',text:''})}}>Forgot Password?</button>
-                       </>
-                   )}
-                   {mode !== 'login' && (
-                       <button type="button" className="btn" style={{background: 'none', color: 'var(--text-secondary)', padding: 0}} onClick={() => {setMode('login'); setMsg({type:'',text:''})}}>Back to Login</button>
-                   )}
-               </div>
+          {mode === 'reset' && (
+            <div className="form-group">
+              <label>Confirm Password</label>
+              <input className="input" required type="password" value={cred.confirmPassword} onChange={e => setCred({...cred, confirmPassword: e.target.value})}/>
             </div>
           )}
 
