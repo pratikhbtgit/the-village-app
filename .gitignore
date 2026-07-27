@@ -1,1 +1,19 @@
+# Node dependencies
+node_modules/
+frontend/node_modules/
+
+# SQLite Database & Local Backups
+*.sqlite
+*.sqlite3
+*.db
+*.sqlite-journal
+backups/
+
+# Build outputs
+frontend/dist/
+
+# OS and Environment files
+.DS_Store
+.env
+.env.local
 ngrok.exe
