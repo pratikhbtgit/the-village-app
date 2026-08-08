@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, UserPlus, Package, Archive, Clock, Home, LogOut, CheckSquare, X, Edit, Trash2, BarChart, Menu, Shield, FileText, Printer, Plus, Search, Eye } from 'lucide-react';
+import { Users, UserPlus, Package, Archive, Clock, Home, LogOut, CheckSquare, X, Edit, Trash2, BarChart, Menu, Shield, FileText, Printer, Plus, Search, Eye, Barcode } from 'lucide-react';
 import { format } from 'date-fns';
 import villageLogo from './assets/village-logo.svg';
+import skusMapping from './assets/skus.json';
+
+const uniqueSkuItems = Array.from(new Set(
+  Object.values(skusMapping)
+    .map(desc => {
+      const item = desc.split('-')[1]?.trim();
+      return item ? item.charAt(0).toUpperCase() + item.slice(1) : null;
+    })
+    .filter(Boolean)
+)).sort();
 
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? 'http://localhost:3001/api' 
@@ -1553,16 +1563,13 @@ function FosterRequests({ currentUser }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [barcodeInput, setBarcodeInput] = useState('');
 
   const defaultForm = {
     fosterFamily: '', workerName: '', childName: '', childAge: '', rpmName: '', region: '6',
-    topSize: '', pantsSize: '', shoesSize: '', notes: '', isFirstPlacement: 0,
-    hasBlanketQuilt: 0, hasSuitcaseDuffle: 0, diaperSize: '', diaperQuantity: 0,
+    notes: '', isFirstPlacement: 0,
     needsList: [
-      { item: 'Pants', qty: '3' },
-      { item: 'PJs', qty: '10' },
-      { item: 'Leggings', qty: '6' },
-      { item: 'Shirts', qty: '15' }
+      { item: '', qty: '' }
     ],
     deliveredBy: '', requestDate: new Date().toISOString().split('T')[0], status: 'Pending'
   };
@@ -1668,11 +1675,42 @@ function FosterRequests({ currentUser }) {
     }));
   };
 
+  const handleBarcodeScan = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const sku = barcodeInput.trim();
+      if (sku && skusMapping[sku]) {
+        handleAddNeedPreset(skusMapping[sku], '1');
+      } else {
+        alert('SKU not found: ' + sku);
+      }
+      setBarcodeInput('');
+    }
+  };
+
   const handleAddNeedPreset = (item, qty) => {
-    setFormData(prev => ({
-      ...prev,
-      needsList: [...prev.needsList, { item, qty }]
-    }));
+    setFormData(prev => {
+      const existingIndex = prev.needsList.findIndex(n => n.item === item);
+      if (existingIndex !== -1) {
+        const updated = [...prev.needsList];
+        const currentQty = parseInt(updated[existingIndex].qty) || 0;
+        const addQty = parseInt(qty) || 1;
+        updated[existingIndex].qty = (currentQty + addQty).toString();
+        return { ...prev, needsList: updated };
+      }
+      
+      const emptyIndex = prev.needsList.findIndex(n => !n.item && !n.qty);
+      if (emptyIndex !== -1) {
+        const updated = [...prev.needsList];
+        updated[emptyIndex] = { item, qty };
+        return { ...prev, needsList: updated };
+      }
+      
+      return {
+        ...prev,
+        needsList: [...prev.needsList, { item, qty }]
+      };
+    });
   };
 
   const handleNeedChange = (index, field, value) => {
@@ -1853,10 +1891,10 @@ function FosterRequests({ currentUser }) {
             </div>
           </div>
 
-          {/* Section 2: Child Details & Sizes */}
+          {/* Section 2: Child Details */}
           <div style={{ background: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
             <h4 style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--accent-primary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              2. Child Details & Clothing Sizes
+              2. Child Details
             </h4>
             
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
@@ -1878,20 +1916,7 @@ function FosterRequests({ currentUser }) {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
-              <div>
-                <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Tops Size</label>
-                <input type="text" className="input" value={formData.topSize} onChange={e => setFormData({ ...formData, topSize: e.target.value })} placeholder="e.g. 9-12M" />
-              </div>
-              <div>
-                <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Pants Size</label>
-                <input type="text" className="input" value={formData.pantsSize} onChange={e => setFormData({ ...formData, pantsSize: e.target.value })} placeholder="e.g. 9M" />
-              </div>
-              <div>
-                <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Shoes Size</label>
-                <input type="text" className="input" value={formData.shoesSize} onChange={e => setFormData({ ...formData, shoesSize: e.target.value })} placeholder="e.g. 3 Infant" />
-              </div>
-            </div>
+
 
             <div>
               <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Notes (favorite color, character, style, etc.)</label>
@@ -1915,23 +1940,7 @@ function FosterRequests({ currentUser }) {
               </label>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-light)' }}>
-              <span className="label" style={{ margin: 0, fontWeight: '700' }}>Optional Items</span>
-              <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={formData.hasBlanketQuilt === 1} onChange={e => setFormData({ ...formData, hasBlanketQuilt: e.target.checked ? 1 : 0 })} /> Blanket / Quilt
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={formData.hasSuitcaseDuffle === 1} onChange={e => setFormData({ ...formData, hasSuitcaseDuffle: e.target.checked ? 1 : 0 })} /> Suitcase / Duffle
-                </label>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <span>Diapers:</span>
-                  <input type="text" className="input" style={{ width: '90px', padding: '0.4rem 0.6rem' }} placeholder="Size 5" value={formData.diaperSize} onChange={e => setFormData({ ...formData, diaperSize: e.target.value })} />
-                  <span>Qty:</span>
-                  <input type="number" className="input" style={{ width: '80px', padding: '0.4rem 0.6rem' }} placeholder="50" value={formData.diaperQuantity} onChange={e => setFormData({ ...formData, diaperQuantity: e.target.value })} />
-                </div>
-              </div>
-            </div>
+
           </div>
 
           {/* Section 4: Itemized NEEDS List */}
@@ -1945,41 +1954,29 @@ function FosterRequests({ currentUser }) {
               </button>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Quick Add Presets:</div>
-              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                {[
-                  { name: 'Pants', qty: '3' },
-                  { name: 'PJs', qty: '10' },
-                  { name: 'Leggings', qty: '6' },
-                  { name: 'Formula', qty: '2' },
-                  { name: 'Overall Shorts', qty: '3' },
-                  { name: 'Cereal', qty: '2' },
-                  { name: 'Shorts', qty: '17' },
-                  { name: 'Dresses', qty: '8' },
-                  { name: 'Shirts', qty: '15' },
-                  { name: 'Romper Outfits', qty: '6' },
-                  { name: 'Shoes', qty: '8' },
-                  { name: 'Wipes', qty: '1' },
-                  { name: 'Stuffie', qty: '1' }
-                ].map(preset => (
-                  <button
-                    key={preset.name}
-                    type="button"
-                    onClick={() => handleAddNeedPreset(preset.name, preset.qty)}
-                    style={{ background: '#e0f2fe', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '6px', padding: '0.25rem 0.6rem', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}
-                  >
-                    + {preset.qty} {preset.name}
-                  </button>
-                ))}
-              </div>
+            <div style={{ position: 'relative', width: '100%', marginBottom: '1.25rem' }}>
+              <Barcode size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+              <input
+                type="text"
+                className="input"
+                style={{ width: '100%', paddingLeft: '2.5rem' }}
+                placeholder="Scan Barcode Here (Auto-adds item)"
+                value={barcodeInput}
+                onChange={(e) => setBarcodeInput(e.target.value)}
+                onKeyDown={handleBarcodeScan}
+              />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '220px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '350px', overflowY: 'auto', paddingRight: '0.5rem' }}>
               {formData.needsList.map((row, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: '#fff', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-light)' }}>
                   <input type="text" className="input" style={{ width: '90px' }} placeholder="Qty (3)" value={row.qty} onChange={e => handleNeedChange(idx, 'qty', e.target.value)} />
-                  <input type="text" className="input" style={{ flex: 1 }} placeholder="Item description (e.g. pants, PJs, diapers)" value={row.item} onChange={e => handleNeedChange(idx, 'item', e.target.value)} />
+                  <select className="input" style={{ flex: 1 }} value={row.item} onChange={e => handleNeedChange(idx, 'item', e.target.value)}>
+                    <option value="">Select an item...</option>
+                    {uniqueSkuItems.map(item => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
                   <button type="button" onClick={() => handleRemoveNeedRow(idx)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-danger)', cursor: 'pointer', padding: '0.2rem' }}>
                     <X size={20} />
                   </button>
