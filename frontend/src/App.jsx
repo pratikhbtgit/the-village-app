@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Users, UserPlus, Package, Archive, Clock, Home, LogOut, CheckSquare, X, Edit, Trash2, BarChart, Menu, Shield, FileText, Printer, Plus, Search, Eye, Barcode } from 'lucide-react';
+import { Users, UserPlus, Package, Archive, Clock, Home, LogOut, X, Edit, Trash2, BarChart, Menu, Shield, FileText, Printer, Plus, Search, Eye, Barcode } from 'lucide-react';
 import { format } from 'date-fns';
 import villageLogo from './assets/village-logo.svg';
 import skusMapping from './assets/skus.json';
@@ -324,7 +324,6 @@ function Sidebar({ user, onLogout }) {
     { name: 'Sign In / Out', icon: <Clock size={20} />, path: '/timeclock', permission: 'volunteerHours.read' },
     { name: 'Visitors', icon: <UserPlus size={20} />, path: '/visitors', permission: 'visitors.read' },
     { name: 'Inventory', icon: <Package size={20} />, path: '/items', permission: 'items.read' },
-    { name: 'Check Out Packages', icon: <CheckSquare size={20} />, path: '/checkout', permission: 'checkouts.read' },
     { name: 'Request Forms', icon: <FileText size={20} />, path: '/requests', permission: 'requests.read' },
     { name: 'Reports', icon: <BarChart size={20} />, path: '/reports', permission: 'reports.read' },
     { name: 'User Management', icon: <Shield size={20} />, path: '/users', permission: 'users.read' },
@@ -393,12 +392,6 @@ function Dashboard() {
           <Clock size={48} color="var(--accent-primary)" style={{marginBottom: '1rem'}}/>
           <h3 style={{fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)'}}>Sign In / Out</h3>
           <p style={{color: 'var(--text-secondary)'}}>Log your volunteer hours here.</p>
-        </button>
-        
-        <button className="action-card" style={{borderColor: 'var(--accent-success)'}} onClick={() => navigate('/checkout')}>
-          <CheckSquare size={48} color="var(--accent-success)" style={{marginBottom: '1rem'}}/>
-          <h3 style={{fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)'}}>Check Out Packages</h3>
-          <p style={{color: 'var(--text-secondary)'}}>Hand out items to a visitor.</p>
         </button>
         
         <button className="action-card" onClick={() => navigate('/visitors')}>
@@ -1085,111 +1078,10 @@ function Visitors({ currentUser }) {
   );
 }
 
-function CheckOut({ currentUser }) {
-  const [checkouts, setCheckouts] = useState([]);
-  const [visitors, setVisitors] = useState([]);
-  const [items, setItems] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ VisitorID: '', ItemID: '', Quantity: '1' });
-  const [error, setError] = useState(null);
-
-  const fetchAll = () => { 
-    axios.get(`${API}/checkouts`).then(res => setCheckouts(res.data));
-    axios.get(`${API}/visitors`).then(res => setVisitors(res.data));
-    axios.get(`${API}/items`).then(res => setItems(res.data));
-  };
-  useEffect(() => { fetchAll(); }, []);
-
-  const openAdd = () => {
-    setFormData({ 
-      VisitorID: visitors.length > 0 ? visitors[0].VisitorID : '', 
-      ItemID: items.length > 0 ? items[0].itemID : '', 
-      Quantity: '1' 
-    });
-    setError(null);
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.VisitorID || !formData.ItemID) return setError("Select a visitor and item.");
-    axios.post(`${API}/checkouts`, formData).then(() => { 
-      setIsModalOpen(false); 
-      fetchAll(); 
-    }).catch(err => setError(err.response?.data?.error || err.message));
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("Return this checkout? It will be deleted and the item quantity restored.")) {
-      axios.delete(`${API}/checkouts/${id}`).then(() => fetchAll()).catch(err => alert(err.response?.data?.error || err.message));
-    }
-  };
-
-  return (
-    <div className="page-container">
-      <div className="page-header">
-        <h2 className="page-title">Check Out Packages Log</h2>
-        {hasPermission(currentUser, 'checkouts.create') && (
-          <button className="btn btn-primary" onClick={openAdd}><CheckSquare size={18}/> New Check Out</button>
-        )}
-      </div>
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr><th>Date</th><th>Visitor / Child</th><th>Item Dispensed</th><th>SKU</th><th>Amount</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {checkouts.map(c => (
-              <tr key={c.checkoutID}>
-                <td>{c.CheckoutDate ? format(new Date(c.CheckoutDate), 'PP p') : 'N/A'}</td>
-                <td>{c.VisitorName} ({c.Childfirstname})</td>
-                <td>{c.ItemName}</td>
-                <td><code style={{fontSize: '0.8rem'}}>{c.SKU || '—'}</code></td>
-                <td>{c.Quanlity}</td>
-                <td>
-                  {hasPermission(currentUser, 'checkouts.delete') && (
-                    <button className="btn btn-danger" style={{padding: '0.4rem'}} onClick={() => handleDelete(c.checkoutID)}>Return Stock</button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={"Dispense Item to Visitor"}>
-        {error && <div style={{background: 'rgba(239, 68, 68, 0.2)', color: 'var(--accent-danger)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem'}}>{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Select Visitor</label>
-            <select className="input" value={formData.VisitorID} onChange={e => setFormData({...formData, VisitorID: e.target.value})}>
-              <option value="">-- Choose Visitor --</option>
-              {visitors.map(v => <option key={v.VisitorID} value={v.VisitorID}>{v.VName} (Child: {v.Childfirstname})</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Select Item to Dispense</label>
-            <select className="input" value={formData.ItemID} onChange={e => setFormData({...formData, ItemID: e.target.value})}>
-              <option value="">-- Choose Item ({items.length} loaded) --</option>
-              {items.filter(i => i.Quantity > 0).map(i => <option key={i.itemID} value={i.itemID}>{i.ItemName}{i.SKU ? ` [${i.SKU}]` : ''} (Stock: {i.Quantity})</option>)}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Quantity Issued</label>
-            <input className="input" type="number" required value={formData.Quantity} onChange={e => setFormData({...formData, Quantity: e.target.value})} />
-          </div>
-          <button type="submit" className="btn btn-primary" style={{width: '100%', justifyContent: 'center'}}>Confirm Check Out</button>
-        </form>
-      </Modal>
-    </div>
-  );
-}
-
 
 function Reports({ currentUser }) {
   const [items, setItems] = useState([]);
   const [hours, setHours] = useState([]);
-  const [checkouts, setCheckouts] = useState([]);
   const [visitors, setVisitors] = useState([]);
   const [dateRange, setDateRange] = useState('all');
   const [customStart, setCustomStart] = useState('');
@@ -1198,7 +1090,6 @@ function Reports({ currentUser }) {
   useEffect(() => {
     axios.get(`${API}/items`).then(res => setItems(res.data));
     axios.get(`${API}/volunteerHours`).then(res => setHours(res.data));
-    axios.get(`${API}/checkouts`).then(res => setCheckouts(res.data));
     axios.get(`${API}/visitors`).then(res => setVisitors(res.data));
   }, []);
 
@@ -1220,7 +1111,6 @@ function Reports({ currentUser }) {
   };
 
   const filteredHours = hours.filter(h => isWithinRange(h.TimeIn));
-  const filteredCheckouts = checkouts.filter(c => isWithinRange(c.CheckoutDate));
   const filteredVisitors = visitors.filter(v => isWithinRange(v.visitDate));
   const lowStock = items.filter(i => i.Quantity <= 5);
 
@@ -1247,20 +1137,7 @@ function Reports({ currentUser }) {
     .map(([name, hrs]) => ({ name, hrs }))
     .sort((a, b) => b.hrs - a.hrs);
 
-  const totalItemsDispensed = filteredCheckouts.reduce((acc, c) => acc + (c.Quanlity || 0), 0);
   const firstPlacements = filteredVisitors.filter(v => v.isfirstPlacement).length;
-
-  const dispensedStats = {};
-  filteredCheckouts.forEach(c => {
-    const name = c.ItemName || 'Unknown Item';
-    if (!dispensedStats[name]) dispensedStats[name] = 0;
-    dispensedStats[name] += (c.Quanlity || 0);
-  });
-
-  const topDispensed = Object.entries(dispensedStats)
-    .map(([name, qty]) => ({ name, qty }))
-    .sort((a, b) => b.qty - a.qty)
-    .slice(0, 5);
 
   const formatHoursToHHMM = (decimalHours) => {
     const h = Math.floor(decimalHours);
@@ -1304,10 +1181,6 @@ function Reports({ currentUser }) {
           <div className="stat-card-title">TOTAL HOURS LOGGED</div>
           <div className="stat-card-value" style={{color: 'var(--accent-primary)', fontSize: '2rem'}}>{formatHoursToHHMM(totalHours)}</div>
         </div>
-        <div className="stat-card" style={{borderColor: '#8b5cf6', borderLeftWidth: '4px'}}>
-          <div className="stat-card-title">TOTAL ITEMS DISPENSED</div>
-          <div className="stat-card-value" style={{color: '#8b5cf6', fontSize: '2rem'}}>{totalItemsDispensed}</div>
-        </div>
         <div className="stat-card" style={{borderColor: '#ec4899', borderLeftWidth: '4px'}}>
           <div className="stat-card-title">FIRST PLACEMENT VISITORS</div>
           <div className="stat-card-value" style={{color: '#ec4899', fontSize: '2rem'}}>{firstPlacements}</div>
@@ -1341,28 +1214,6 @@ function Reports({ currentUser }) {
           </div>
         </div>
 
-        <div className="card" style={{display: 'flex', flexDirection: 'column'}}>
-          <h3 style={{marginBottom: '1rem', color: '#8b5cf6'}}>Most Distributed Items (Top 5)</h3>
-          <div className="table-container" style={{flex: 1, maxHeight: '300px', overflowY: 'auto'}}>
-            {topDispensed.length > 0 ? (
-              <table>
-                <thead style={{position: 'sticky', top: 0, backgroundColor: 'var(--bg-secondary)'}}>
-                  <tr><th>Item Name</th><th>Total Quantity Dispensed</th></tr>
-                </thead>
-                <tbody>
-                  {topDispensed.map(i => (
-                    <tr key={i.name}>
-                      <td>{i.name}</td>
-                      <td style={{fontWeight: 'bold', color: '#8b5cf6'}}>{i.qty}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div style={{color: 'var(--text-secondary)', padding: '2rem', textAlign: 'center'}}>No items have been dispensed yet.</div>
-            )}
-          </div>
-        </div>
 
         <div className="card" style={{display: 'flex', flexDirection: 'column'}}>
           <h3 style={{marginBottom: '1rem', color: 'var(--accent-primary)'}}>Volunteer Leaderboard</h3>
@@ -1387,30 +1238,6 @@ function Reports({ currentUser }) {
           </div>
         </div>
 
-        <div className="card" style={{display: 'flex', flexDirection: 'column'}}>
-          <h3 style={{marginBottom: '1rem', color: '#10b981'}}>Recent Check Out History</h3>
-          <div className="table-container" style={{flex: 1, maxHeight: '300px', overflowY: 'auto'}}>
-            {filteredCheckouts.length > 0 ? (
-              <table>
-                <thead style={{position: 'sticky', top: 0, backgroundColor: 'var(--bg-secondary)'}}>
-                  <tr><th>Date</th><th>Visitor</th><th>Item</th><th>Qty</th></tr>
-                </thead>
-                <tbody>
-                  {filteredCheckouts.slice(0, 5).map(c => (
-                    <tr key={c.checkoutID}>
-                      <td>{c.CheckoutDate ? format(new Date(c.CheckoutDate), 'MMM d, h:mm a') : 'N/A'}</td>
-                      <td>{c.VisitorName}</td>
-                      <td>{c.ItemName}</td>
-                      <td>{c.Quanlity}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div style={{color: 'var(--text-secondary)', padding: '2rem', textAlign: 'center'}}>No checkouts recorded in this time range.</div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -2451,11 +2278,6 @@ function App() {
             <Route path="/visitors" element={
               <ProtectedRoute permission="visitors.read">
                 <Visitors currentUser={user} />
-              </ProtectedRoute>
-            } />
-            <Route path="/checkout" element={
-              <ProtectedRoute permission="checkouts.read">
-                <CheckOut currentUser={user} />
               </ProtectedRoute>
             } />
             <Route path="/requests" element={
