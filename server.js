@@ -223,6 +223,8 @@ function authenticate(req, res, next) {
 
 function requirePermission(permission) {
   return (req, res, next) => {
+    if (req.user?.role === 'admin') return next();
+    if (req.user?.role === 'volunteer' && permission?.startsWith('requests.')) return next();
     const permissions = req.user?.permissions || [];
     if (!permissions.includes(permission)) {
       return res.status(403).json({ error: `Permission required: ${permission}` });
@@ -271,6 +273,31 @@ db.serialize(() => {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (role_id) REFERENCES roles(id),
       FOREIGN KEY (volunteer_id) REFERENCES Volunteers(ID)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS FosterRequests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      fosterFamily TEXT,
+      workerName TEXT,
+      childName TEXT,
+      childAge TEXT,
+      rpmName TEXT,
+      region TEXT,
+      topSize TEXT,
+      pantsSize TEXT,
+      shoesSize TEXT,
+      notes TEXT,
+      isFirstPlacement INTEGER DEFAULT 0,
+      hasBlanketQuilt INTEGER DEFAULT 0,
+      hasSuitcaseDuffle INTEGER DEFAULT 0,
+      diaperSize TEXT,
+      diaperQuantity INTEGER DEFAULT 0,
+      needsList TEXT,
+      deliveredBy TEXT,
+      requestDate TEXT,
+      status TEXT DEFAULT 'Pending'
     )
   `);
 
@@ -325,7 +352,11 @@ db.serialize(() => {
     (21, 'users.create', 'Create users'),
     (22, 'users.update', 'Update users'),
     (23, 'users.delete', 'Delete users'),
-    (24, 'roles.manage', 'Manage roles and permissions')
+    (24, 'roles.manage', 'Manage roles and permissions'),
+    (25, 'requests.read', 'View foster care requests'),
+    (26, 'requests.create', 'Create foster care requests'),
+    (27, 'requests.update', 'Update foster care requests'),
+    (28, 'requests.delete', 'Delete foster care requests')
   `);
 
   db.run(`
@@ -336,16 +367,19 @@ db.serialize(() => {
     (1,12),(1,13),(1,14),(1,15),
     (1,16),(1,17),(1,18),
     (1,19),(1,20),(1,21),(1,22),(1,23),(1,24),
+    (1,25),(1,26),(1,27),(1,28),
 
     (2,1),
     (2,5),(2,6),(2,7),
     (2,8),(2,9),
     (2,12),
     (2,16),(2,17),
+    (2,25),(2,26),(2,27),
 
     (3,12),(3,13),(3,14),(3,15),
     (3,16),(3,17),
     (3,8),(3,9),(3,10),
+    (3,25),(3,26),(3,27),
 
     (4,19)
   `);
@@ -744,15 +778,77 @@ app.delete('/api/checkouts/:id', requirePermission('checkouts.delete'), (req, re
   });
 });
 
+// ─── Foster Care Requests ───────────────────────────────────────────────────
+
+app.get('/api/requests', requirePermission('requests.read'), (req, res) => {
+  query(res, 'SELECT * FROM FosterRequests ORDER BY id DESC');
+});
+
+app.get('/api/requests/:id', requirePermission('requests.read'), (req, res) => {
+  db.get('SELECT * FROM FosterRequests WHERE id = ?', [req.params.id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Request not found' });
+    res.json(row);
+  });
+});
+
+app.post('/api/requests', requirePermission('requests.create'), (req, res) => {
+  const {
+    fosterFamily, workerName, childName, childAge, rpmName, region,
+    topSize, pantsSize, shoesSize, notes, isFirstPlacement,
+    hasBlanketQuilt, hasSuitcaseDuffle, diaperSize, diaperQuantity,
+    needsList, deliveredBy, requestDate, status
+  } = req.body;
+  const sql = `INSERT INTO FosterRequests 
+    (fosterFamily, workerName, childName, childAge, rpmName, region, topSize, pantsSize, shoesSize, notes, isFirstPlacement, hasBlanketQuilt, hasSuitcaseDuffle, diaperSize, diaperQuantity, needsList, deliveredBy, requestDate, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const params = [
+    fosterFamily || '', workerName || '', childName || '', childAge || '', rpmName || '', region || '',
+    topSize || '', pantsSize || '', shoesSize || '', notes || '', isFirstPlacement ? 1 : 0,
+    hasBlanketQuilt ? 1 : 0, hasSuitcaseDuffle ? 1 : 0, diaperSize || '', parseInt(diaperQuantity) || 0,
+    typeof needsList === 'object' ? JSON.stringify(needsList) : (needsList || ''),
+    deliveredBy || '', requestDate || new Date().toISOString().split('T')[0], status || 'Pending'
+  ];
+  execute(res, sql, params);
+});
+
+app.put('/api/requests/:id', requirePermission('requests.update'), (req, res) => {
+  const {
+    fosterFamily, workerName, childName, childAge, rpmName, region,
+    topSize, pantsSize, shoesSize, notes, isFirstPlacement,
+    hasBlanketQuilt, hasSuitcaseDuffle, diaperSize, diaperQuantity,
+    needsList, deliveredBy, requestDate, status
+  } = req.body;
+  const sql = `UPDATE FosterRequests SET
+    fosterFamily=?, workerName=?, childName=?, childAge=?, rpmName=?, region=?,
+    topSize=?, pantsSize=?, shoesSize=?, notes=?, isFirstPlacement=?,
+    hasBlanketQuilt=?, hasSuitcaseDuffle=?, diaperSize=?, diaperQuantity=?,
+    needsList=?, deliveredBy=?, requestDate=?, status=?
+    WHERE id=?`;
+  const params = [
+    fosterFamily || '', workerName || '', childName || '', childAge || '', rpmName || '', region || '',
+    topSize || '', pantsSize || '', shoesSize || '', notes || '', isFirstPlacement ? 1 : 0,
+    hasBlanketQuilt ? 1 : 0, hasSuitcaseDuffle ? 1 : 0, diaperSize || '', parseInt(diaperQuantity) || 0,
+    typeof needsList === 'object' ? JSON.stringify(needsList) : (needsList || ''),
+    deliveredBy || '', requestDate || '', status || 'Pending', req.params.id
+  ];
+  execute(res, sql, params);
+});
+
+app.delete('/api/requests/:id', requirePermission('requests.delete'), (req, res) => {
+  execute(res, 'DELETE FROM FosterRequests WHERE id=?', [req.params.id]);
+});
+
 // ─── Reports ──────────────────────────────────────────────────────────────────
 
 app.get('/api/reports/summary', requirePermission('reports.read'), async (req, res) => {
   try {
-    const [items, hours, checkouts, visitors] = await Promise.all([
+    const [items, hours, checkouts, visitors, requests] = await Promise.all([
       dbAll(`SELECT * FROM Items`),
       dbAll(`SELECT * FROM volunteerHours`),
       dbAll(`SELECT * FROM ItemCheckOut`),
-      dbAll(`SELECT * FROM Visitors`)
+      dbAll(`SELECT * FROM Visitors`),
+      dbAll(`SELECT * FROM FosterRequests`)
     ]);
 
     res.json({
@@ -760,7 +856,9 @@ app.get('/api/reports/summary', requirePermission('reports.read'), async (req, r
       totalItems: items.length,
       totalVisitors: visitors.length,
       totalCheckouts: checkouts.length,
-      totalVolunteerSessions: hours.length
+      totalVolunteerSessions: hours.length,
+      totalRequests: requests.length,
+      pendingRequests: requests.filter(r => r.status === 'Pending').length
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

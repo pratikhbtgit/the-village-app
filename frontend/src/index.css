@@ -439,3 +439,152 @@ tr:hover td {
       flex-direction: column;
   }
 }
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-transform: capitalize;
+}
+.status-pending { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.status-in-progress { background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+.status-fulfilled { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.status-delivered { background-color: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+.status-cancelled { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+/* Printable Intake Form Replica */
+.printable-paper-form {
+  font-family: 'Inter', sans-serif, system-ui;
+  background: #fff;
+  color: #111;
+  border: 2px solid #222;
+  padding: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 4px;
+}
+
+.paper-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+}
+
+.paper-field {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.paper-field label {
+  font-weight: 700;
+  color: #111;
+}
+
+.paper-line {
+  border-bottom: 1.5px solid #222;
+  padding: 0 0.5rem;
+  min-width: 120px;
+  font-weight: 600;
+  color: #111;
+}
+
+.paper-region-box {
+  border: 2px solid #222;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.75rem;
+  position: relative;
+}
+
+.paper-region-title {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.paper-notes-box {
+  border: 1.5px solid #222;
+  padding: 0.5rem 0.75rem;
+  min-height: 80px;
+  flex: 1;
+  border-radius: 2px;
+}
+
+.paper-notes-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #444;
+  margin-bottom: 0.25rem;
+}
+
+.paper-optional-box {
+  border: 1.5px solid #222;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.paper-needs-container {
+  border: 2px solid #222;
+  padding: 1rem;
+  margin-top: 1rem;
+  min-height: 220px;
+  position: relative;
+  background: #fafafa;
+}
+
+.paper-needs-header {
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.05em;
+  border-bottom: 1px dashed #666;
+  padding-bottom: 0.25rem;
+}
+
+.paper-needs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-paper-form, .printable-paper-form * {
+    visibility: visible;
+  }
+  .printable-paper-form {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: 2px solid #000 !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
