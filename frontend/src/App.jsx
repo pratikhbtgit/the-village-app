@@ -1704,7 +1704,7 @@ function FosterRequests({ currentUser }) {
             <h4 style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--accent-primary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               1. Foster Family & Caseworker Info
             </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1fr', gap: '1.25rem' }}>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Foster Family Name</label>
                 <input type="text" className="input" required value={formData.fosterFamily} onChange={e => setFormData({ ...formData, fosterFamily: e.target.value })} placeholder="e.g. Smith" />
@@ -1712,6 +1712,14 @@ function FosterRequests({ currentUser }) {
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Social Worker Name</label>
                 <input type="text" className="input" value={formData.workerName} onChange={e => setFormData({ ...formData, workerName: e.target.value })} placeholder="e.g. Adam Robinson" />
+              </div>
+              <div>
+                <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>RPM</label>
+                <input type="text" className="input" value={formData.rpmName} onChange={e => setFormData({ ...formData, rpmName: e.target.value })} placeholder="Name" />
+              </div>
+              <div>
+                <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Region</label>
+                <input type="text" className="input" value={formData.region} onChange={e => setFormData({ ...formData, region: e.target.value })} placeholder="6" />
               </div>
             </div>
           </div>
@@ -1722,7 +1730,7 @@ function FosterRequests({ currentUser }) {
               2. Child Details
             </h4>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Child's Name</label>
                 <input type="text" className="input" required value={formData.childName} onChange={e => setFormData({ ...formData, childName: e.target.value })} placeholder="e.g. Mary" />
@@ -1730,14 +1738,6 @@ function FosterRequests({ currentUser }) {
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Age</label>
                 <input type="text" className="input" value={formData.childAge} onChange={e => setFormData({ ...formData, childAge: e.target.value })} placeholder="e.g. 9mo" />
-              </div>
-              <div>
-                <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>RPM</label>
-                <input type="text" className="input" value={formData.rpmName} onChange={e => setFormData({ ...formData, rpmName: e.target.value })} placeholder="Name" />
-              </div>
-              <div>
-                <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Region</label>
-                <input type="text" className="input" value={formData.region} onChange={e => setFormData({ ...formData, region: e.target.value })} placeholder="6" />
               </div>
             </div>
 
