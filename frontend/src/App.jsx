@@ -1707,11 +1707,11 @@ function FosterRequests({ currentUser }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Foster Family Name</label>
-                <input type="text" className="input" required value={formData.fosterFamily} onChange={e => setFormData({ ...formData, fosterFamily: e.target.value })} placeholder="e.g. Cheytanna" />
+                <input type="text" className="input" required value={formData.fosterFamily} onChange={e => setFormData({ ...formData, fosterFamily: e.target.value })} placeholder="e.g. Smith" />
               </div>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Social Worker Name</label>
-                <input type="text" className="input" value={formData.workerName} onChange={e => setFormData({ ...formData, workerName: e.target.value })} placeholder="e.g. Kali Robinson" />
+                <input type="text" className="input" value={formData.workerName} onChange={e => setFormData({ ...formData, workerName: e.target.value })} placeholder="e.g. Adam Robinson" />
               </div>
             </div>
           </div>
@@ -1725,7 +1725,7 @@ function FosterRequests({ currentUser }) {
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Child's Name</label>
-                <input type="text" className="input" required value={formData.childName} onChange={e => setFormData({ ...formData, childName: e.target.value })} placeholder="e.g. Lenoir" />
+                <input type="text" className="input" required value={formData.childName} onChange={e => setFormData({ ...formData, childName: e.target.value })} placeholder="e.g. Marry" />
               </div>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Age</label>
