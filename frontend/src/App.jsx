@@ -6,14 +6,7 @@ import { format } from 'date-fns';
 import villageLogo from './assets/village-logo.svg';
 import skusMapping from './assets/skus.json';
 
-const uniqueSkuItems = Array.from(new Set(
-  Object.values(skusMapping)
-    .map(desc => {
-      const item = desc.split('-')[1]?.trim();
-      return item ? item.charAt(0).toUpperCase() + item.slice(1) : null;
-    })
-    .filter(Boolean)
-)).sort();
+const uniqueSkuItems = Array.from(new Set(Object.values(skusMapping))).sort();
 
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? 'http://localhost:3001/api' 
