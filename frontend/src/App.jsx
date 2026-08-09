@@ -1519,7 +1519,7 @@ function FosterRequests({ currentUser }) {
         const updated = [...prev.needsList];
         const currentQty = parseInt(updated[existingIndex].qty) || 0;
         const addQty = parseInt(qty) || 1;
-        updated[existingIndex].qty = (currentQty + addQty).toString();
+        updated[existingIndex] = { ...updated[existingIndex], qty: (currentQty + addQty).toString() };
         return { ...prev, needsList: updated };
       }
       
@@ -1540,7 +1540,7 @@ function FosterRequests({ currentUser }) {
   const handleNeedChange = (index, field, value) => {
     setFormData(prev => {
       const updated = [...prev.needsList];
-      updated[index][field] = value;
+      updated[index] = { ...updated[index], [field]: value };
       return { ...prev, needsList: updated };
     });
   };
