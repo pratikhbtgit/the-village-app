@@ -76,10 +76,10 @@ def generate_pdf():
             # Generate barcode image
             img_path = os.path.join(tmpdir, sku)
             code = code39(sku, writer=ImageWriter(), add_checksum=False)
-            code.save(img_path)
+            code.save(img_path, options={"font_size": 14})
             
             # Draw on PDF
-            c.setFont("Helvetica", 8)
+            c.setFont("Helvetica", 10)
             c.drawString(x, y + 0.1 * inch, desc[:35]) # truncate long descriptions
             c.drawImage(img_path + ".png", x, y - 0.7 * inch, width=2*inch, height=0.7*inch)
             
