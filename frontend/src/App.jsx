@@ -1792,15 +1792,23 @@ function FosterRequests({ currentUser }) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', paddingRight: '0.5rem' }}>
+              <datalist id="sku-options">
+                {uniqueSkuItems.map(item => (
+                  <option key={item} value={item} />
+                ))}
+              </datalist>
               {formData.needsList.map((row, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: '#fff', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-light)' }}>
                   <input type="text" className="input" style={{ width: '90px' }} placeholder="Qty (3)" value={row.qty} onChange={e => handleNeedChange(idx, 'qty', e.target.value)} />
-                  <select className="input" style={{ flex: 1 }} value={row.item} onChange={e => handleNeedChange(idx, 'item', e.target.value)}>
-                    <option value="">Select an item...</option>
-                    {uniqueSkuItems.map(item => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <input
+                    type="text"
+                    list="sku-options"
+                    className="input"
+                    style={{ flex: 1 }}
+                    placeholder="Select or type an item..."
+                    value={row.item}
+                    onChange={e => handleNeedChange(idx, 'item', e.target.value)}
+                  />
                   <button type="button" onClick={() => handleRemoveNeedRow(idx)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-danger)', cursor: 'pointer', padding: '0.2rem' }}>
                     <X size={20} />
                   </button>
