@@ -315,7 +315,6 @@ function Sidebar({ user, onLogout }) {
     { name: 'Dashboard', icon: <Home size={20} />, path: '/' },
     { name: 'Volunteers', icon: <Users size={20} />, path: '/volunteers', permission: 'volunteers.read' },
     { name: 'Sign In / Out', icon: <Clock size={20} />, path: '/timeclock', permission: 'volunteerHours.read' },
-    { name: 'Visitors', icon: <UserPlus size={20} />, path: '/visitors', permission: 'visitors.read' },
     { name: 'Inventory', icon: <Package size={20} />, path: '/items', permission: 'items.read' },
     { name: 'Request Forms', icon: <FileText size={20} />, path: '/requests', permission: 'requests.read' },
     { name: 'Reports', icon: <BarChart size={20} />, path: '/reports', permission: 'reports.read' },
@@ -355,18 +354,16 @@ function Sidebar({ user, onLogout }) {
 }
 
 function Dashboard() {
-  const [stats, setStats] = useState({ volunteers: 0, visitors: 0, items: 0 });
+  const [stats, setStats] = useState({ volunteers: 0, items: 0 });
   const navigate = useNavigate();
 
   useEffect(() => {
     Promise.all([
       axios.get(`${API}/volunteers`),
-      axios.get(`${API}/visitors`),
       axios.get(`${API}/items`)
-    ]).then(([volReq, visReq, itReq]) => {
+    ]).then(([volReq, itReq]) => {
       setStats({
         volunteers: volReq.data.length,
-        visitors: visReq.data.length,
         items: itReq.data.reduce((acc, curr) => acc + (curr.Quantity || 0), 0)
       });
     });
@@ -385,12 +382,6 @@ function Dashboard() {
           <Clock size={48} color="var(--accent-primary)" style={{marginBottom: '1rem'}}/>
           <h3 style={{fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)'}}>Sign In / Out</h3>
           <p style={{color: 'var(--text-secondary)'}}>Log your volunteer hours here.</p>
-        </button>
-        
-        <button className="action-card" onClick={() => navigate('/visitors')}>
-          <UserPlus size={48} color="var(--accent-primary)" style={{marginBottom: '1rem'}}/>
-          <h3 style={{fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)'}}>Add a new Visitor</h3>
-          <p style={{color: 'var(--text-secondary)'}}>Log information for a new foster parent/child.</p>
         </button>
 
         <button className="action-card" onClick={() => navigate('/requests')}>
@@ -411,10 +402,6 @@ function Dashboard() {
         <div className="stat-card">
           <div className="stat-card-title">TOTAL VOLUNTEERS</div>
           <div className="stat-card-value">{stats.volunteers}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-title">TOTAL VISITORS</div>
-          <div className="stat-card-value">{stats.visitors}</div>
         </div>
         <div className="stat-card">
           <div className="stat-card-title">ITEMS IN INVENTORY</div>
@@ -985,97 +972,11 @@ function Inventory({ currentUser }) {
 }
 
 
-function Visitors({ currentUser }) {
-  const [visitors, setVisitors] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ VName: '', Childfirstname: '', isfirstPlacement: false, RPMName: '', Region: '' });
-
-  const fetchVisitors = () => { axios.get(`${API}/visitors`).then(res => setVisitors(res.data)) };
-  useEffect(() => { fetchVisitors(); }, []);
-
-  const openAdd = () => {
-    setEditingId(null);
-    setFormData({ VName: '', Childfirstname: '', isfirstPlacement: false, RPMName: '', Region: '' });
-    setIsModalOpen(true);
-  };
-
-  const openEdit = (vis) => {
-    setEditingId(vis.VisitorID);
-    setFormData({ ...vis, isfirstPlacement: vis.isfirstPlacement === 1 });
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const req = editingId ? axios.put(`${API}/visitors/${editingId}`, formData) : axios.post(`${API}/visitors`, formData);
-    req.then(() => { setIsModalOpen(false); fetchVisitors(); });
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("Delete this visitor permanently?")) {
-      axios.delete(`${API}/visitors/${id}`).then(() => fetchVisitors()).catch(err => alert(err.response?.data?.error || err.message));
-    }
-  };
-
-  return (
-    <div className="page-container">
-      <div className="page-header">
-        <h2 className="page-title">Visitors</h2>
-        {hasPermission(currentUser, 'visitors.create') && (
-          <button className="btn btn-primary" onClick={openAdd}><UserPlus size={18}/> Add Visitor</button>
-        )}
-      </div>
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr><th>Visitor Name</th><th>Child's Name</th><th>First Placement?</th><th>Date Added</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {visitors.map(v => (
-              <tr key={v.VisitorID}>
-                <td>{v.VName}</td>
-                <td>{v.Childfirstname}</td>
-                <td>{v.isfirstPlacement ? "Yes" : "No"}</td>
-                <td>{v.visitDate ? format(new Date(v.visitDate), 'PP') : 'N/A'}</td>
-                <td>
-                  <div style={{display: 'flex', gap: '0.5rem'}}>
-                    {hasPermission(currentUser, 'visitors.update') && (
-                      <button className="btn" style={{padding: '0.4rem', background: 'rgba(255,255,255,0.1)'}} onClick={() => openEdit(v)}><Edit size={16} /></button>
-                    )}
-                    {hasPermission(currentUser, 'visitors.delete') && (
-                      <button className="btn" style={{padding: '0.4rem', background: 'rgba(239, 68, 68, 0.2)', color: 'var(--accent-danger)'}} onClick={() => handleDelete(v.VisitorID)}><Trash2 size={16} /></button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Visitor" : "Add Visitor"}>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group"><label>Visitor Name</label><input className="input" required value={formData.VName} onChange={e => setFormData({...formData, VName: e.target.value})} /></div>
-          <div className="form-group"><label>Child's First Name</label><input className="input" value={formData.Childfirstname} onChange={e => setFormData({...formData, Childfirstname: e.target.value})} /></div>
-          <div className="form-group" style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
-            <input type="checkbox" checked={formData.isfirstPlacement} onChange={e => setFormData({...formData, isfirstPlacement: e.target.checked})} style={{width: 'auto'}}/>
-            <label style={{marginBottom: 0}}>Is this their first placement?</label>
-          </div>
-          <div className="form-group"><label>RPM Name (Placement Agency)</label><input className="input" value={formData.RPMName} onChange={e => setFormData({...formData, RPMName: e.target.value})} /></div>
-          <div className="form-group"><label>Region</label><input className="input" value={formData.Region} onChange={e => setFormData({...formData, Region: e.target.value})} /></div>
-          <button type="submit" className="btn btn-primary" style={{width: '100%', justifyContent: 'center'}}>{editingId ? "Update Visitor" : "Save Visitor"}</button>
-        </form>
-      </Modal>
-    </div>
-  );
-}
 
 
 function Reports({ currentUser }) {
   const [items, setItems] = useState([]);
   const [hours, setHours] = useState([]);
-  const [visitors, setVisitors] = useState([]);
   const [dateRange, setDateRange] = useState('all');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
@@ -1083,7 +984,6 @@ function Reports({ currentUser }) {
   useEffect(() => {
     axios.get(`${API}/items`).then(res => setItems(res.data));
     axios.get(`${API}/volunteerHours`).then(res => setHours(res.data));
-    axios.get(`${API}/visitors`).then(res => setVisitors(res.data));
   }, []);
 
   const isWithinRange = (dateString) => {
@@ -1104,7 +1004,6 @@ function Reports({ currentUser }) {
   };
 
   const filteredHours = hours.filter(h => isWithinRange(h.TimeIn));
-  const filteredVisitors = visitors.filter(v => isWithinRange(v.visitDate));
   const lowStock = items.filter(i => i.Quantity <= 5);
 
   const totalHours = filteredHours.reduce((acc, h) => {
@@ -1130,7 +1029,6 @@ function Reports({ currentUser }) {
     .map(([name, hrs]) => ({ name, hrs }))
     .sort((a, b) => b.hrs - a.hrs);
 
-  const firstPlacements = filteredVisitors.filter(v => v.isfirstPlacement).length;
 
   const formatHoursToHHMM = (decimalHours) => {
     const h = Math.floor(decimalHours);
@@ -1173,10 +1071,6 @@ function Reports({ currentUser }) {
         <div className="stat-card" style={{borderColor: 'var(--accent-primary)', borderLeftWidth: '4px'}}>
           <div className="stat-card-title">TOTAL HOURS LOGGED</div>
           <div className="stat-card-value" style={{color: 'var(--accent-primary)', fontSize: '2rem'}}>{formatHoursToHHMM(totalHours)}</div>
-        </div>
-        <div className="stat-card" style={{borderColor: '#ec4899', borderLeftWidth: '4px'}}>
-          <div className="stat-card-title">FIRST PLACEMENT VISITORS</div>
-          <div className="stat-card-value" style={{color: '#ec4899', fontSize: '2rem'}}>{firstPlacements}</div>
         </div>
       </div>
 
@@ -2292,11 +2186,6 @@ function App() {
             <Route path="/items" element={
               <ProtectedRoute permission="items.read">
                 <Inventory currentUser={user} />
-              </ProtectedRoute>
-            } />
-            <Route path="/visitors" element={
-              <ProtectedRoute permission="visitors.read">
-                <Visitors currentUser={user} />
               </ProtectedRoute>
             } />
             <Route path="/requests" element={
