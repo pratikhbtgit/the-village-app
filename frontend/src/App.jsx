@@ -1704,7 +1704,7 @@ function FosterRequests({ currentUser }) {
             <h4 style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--accent-primary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               1. Foster Family & Caseworker Info
             </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1fr', gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Foster Family Name</label>
                 <input type="text" className="input" required value={formData.fosterFamily} onChange={e => setFormData({ ...formData, fosterFamily: e.target.value })} placeholder="e.g. Smith" />
