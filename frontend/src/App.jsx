@@ -1387,6 +1387,7 @@ function FosterRequests({ currentUser }) {
 
   const defaultForm = {
     fosterFamily: '', workerName: '', childName: '', childAge: '', rpmName: '', region: '6',
+    topSize: '', pantsSize: '', shoesSize: '',
     notes: '', isFirstPlacement: 0,
     needsList: [
       { item: '', qty: '' }
@@ -1740,7 +1741,20 @@ function FosterRequests({ currentUser }) {
               </div>
             </div>
 
-
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
+              <div>
+                <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Top Size</label>
+                <input type="text" className="input" value={formData.topSize || ''} onChange={e => setFormData({ ...formData, topSize: e.target.value })} placeholder="e.g. 4T" />
+              </div>
+              <div>
+                <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Pants Size</label>
+                <input type="text" className="input" value={formData.pantsSize || ''} onChange={e => setFormData({ ...formData, pantsSize: e.target.value })} placeholder="e.g. 4T" />
+              </div>
+              <div>
+                <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Shoe Size</label>
+                <input type="text" className="input" value={formData.shoesSize || ''} onChange={e => setFormData({ ...formData, shoesSize: e.target.value })} placeholder="e.g. 9" />
+              </div>
+            </div>
 
             <div>
               <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Notes (favorite color, character, style, etc.)</label>
