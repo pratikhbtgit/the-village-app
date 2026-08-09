@@ -67,7 +67,7 @@ def generate_pdf():
     x = x_margin
     y = y_margin
     
-    code128 = barcode.get_barcode_class('code128')
+    code39 = barcode.get_barcode_class('code39')
     
     print(f"Total SKUs found: {len(skus)}")
     
@@ -75,7 +75,7 @@ def generate_pdf():
         for sku, desc in skus:
             # Generate barcode image
             img_path = os.path.join(tmpdir, sku)
-            code = code128(sku, writer=ImageWriter())
+            code = code39(sku, writer=ImageWriter(), add_checksum=False)
             code.save(img_path)
             
             # Draw on PDF
