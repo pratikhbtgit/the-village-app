@@ -1498,13 +1498,17 @@ function FosterRequests({ currentUser }) {
   const handleBarcodeScan = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const sku = barcodeInput.trim();
-      if (sku && skusMapping[sku]) {
+      const sku = e.target.value.trim();
+      if (!sku) return; // Prevent double firing
+      
+      e.target.value = ''; // Clear DOM immediately
+      setBarcodeInput(''); // Clear React state
+      
+      if (skusMapping[sku]) {
         handleAddNeedPreset(skusMapping[sku], '1');
       } else {
         alert('SKU not found: ' + sku);
       }
-      setBarcodeInput('');
     }
   };
 
