@@ -1791,7 +1791,7 @@ function FosterRequests({ currentUser }) {
               />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '350px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', paddingRight: '0.5rem' }}>
               {formData.needsList.map((row, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: '#fff', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-light)' }}>
                   <input type="text" className="input" style={{ width: '90px' }} placeholder="Qty (3)" value={row.qty} onChange={e => handleNeedChange(idx, 'qty', e.target.value)} />
