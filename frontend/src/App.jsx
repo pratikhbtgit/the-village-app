@@ -1732,7 +1732,7 @@ function FosterRequests({ currentUser }) {
               </div>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>RPM</label>
-                <input type="text" className="input" value={formData.rpmName} onChange={e => setFormData({ ...formData, rpmName: e.target.value })} placeholder="Caseworker" />
+                <input type="text" className="input" value={formData.rpmName} onChange={e => setFormData({ ...formData, rpmName: e.target.value })} placeholder="Name" />
               </div>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Region</label>
