@@ -1725,7 +1725,7 @@ function FosterRequests({ currentUser }) {
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Child's Name</label>
-                <input type="text" className="input" required value={formData.childName} onChange={e => setFormData({ ...formData, childName: e.target.value })} placeholder="e.g. Marry" />
+                <input type="text" className="input" required value={formData.childName} onChange={e => setFormData({ ...formData, childName: e.target.value })} placeholder="e.g. Mary" />
               </div>
               <div>
                 <label className="label" style={{ marginBottom: '0.4rem', fontWeight: '600' }}>Age</label>
