@@ -36,6 +36,14 @@ def generate_pdf():
                 ("0116B", "Babies - Onesies 0-5T"),
                 ("0119B", "Babies - Swimsuit 0-5T"),
                 
+                ("1701B", "Footwear - Shoes 0-5T"),
+                
+                ("0301B", "Winter - Coats 0-5T"),
+                ("0302B", "Winter - Hat 0-5T"),
+                ("0303B", "Winter - Gloves 0-5T"),
+                ("0304B", "Winter - Snow Pants 0-5T"),
+                ("1702B", "Footwear - Winter Boots 0-5T"),
+                
                 ("0201", "Babies - Diapers"),
                 ("0202", "Babies - Pullups"),
                 ("0227", "Babies - Bottles"),
@@ -65,15 +73,6 @@ def generate_pdf():
                 
                 ("1401", "Travel - Suitcase"),
                 ("1402", "Travel - Duffle Bag"),
-                
-                ("1701B", "Footwear - Shoes 0-5T"),
-                
-                # Winter Items at the very bottom
-                ("0301B", "Winter - Coats 0-5T"),
-                ("0302B", "Winter - Hat 0-5T"),
-                ("0303B", "Winter - Gloves 0-5T"),
-                ("0304B", "Winter - Snow Pants 0-5T"),
-                ("1702B", "Footwear - Winter Boots 0-5T"),
             ]
         },
         # YOUTH & ADULT PAGE(S)
@@ -93,15 +92,21 @@ def generate_pdf():
                 ("0117Y", "Youth/Adult - Hat"),
                 ("0119Y", "Youth/Adult - Swimsuit"),
                 
+                ("1701Y", "Footwear - Shoes"),
+                
                 ("0112Y", "Youth/Adult - Belt"),
                 ("0113Y", "Youth/Adult - Bra"),
                 ("0114Y", "Youth/Adult - Tie"),
                 ("0115Y", "Youth/Adult - Baseball Cap"),
                 
+                ("0301Y", "Winter - Coat"),
+                ("0302Y", "Winter - Hat"),
+                ("0303Y", "Winter - Gloves"),
+                ("0304Y", "Winter - Snow Pants"),
+                ("1702Y", "Footwear - Winter Boots"),
+                
                 ("0106Y", "Youth/Adult - Formal Dress"),
                 ("0107Y", "Youth/Adult - Mens Suit"),
-                
-                ("1701Y", "Footwear - Shoes"),
                 
                 ("0501Y", "Bedding - Pillow"),
                 ("0502Y", "Bedding - Blanket"),
@@ -115,13 +120,6 @@ def generate_pdf():
                 ("1202", "Toys - Toys"),
                 ("1203", "Toys - Stuffies"),
                 ("1204", "Toys - Fidget/Sensory items"),
-                
-                # Winter Items at the very bottom
-                ("0301Y", "Winter - Coat"),
-                ("0302Y", "Winter - Hat"),
-                ("0303Y", "Winter - Gloves"),
-                ("0304Y", "Winter - Snow Pants"),
-                ("1702Y", "Footwear - Winter Boots"),
             ]
         },
         # GIVING MACHINE
