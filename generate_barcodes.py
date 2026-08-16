@@ -14,7 +14,7 @@ def generate_pdf():
     
     x_margin = 0.5 * inch
     y_margin = height - 1.2 * inch
-    x_step = 2.5 * inch
+    x_step = 4.0 * inch
     y_step = 1.5 * inch
     
     code39 = barcode.get_barcode_class('code39')
@@ -34,6 +34,7 @@ def generate_pdf():
                 ("0103B", "Babies - Dress 0-5T"),
                 ("0105B", "Babies - Hoodie 0-5T"),
                 ("0116B", "Babies - Onesies 0-5T"),
+                ("0119B", "Babies - Swimsuit 0-5T"),
                 
                 ("0201", "Babies - Diapers"),
                 ("0202", "Babies - Pullups"),
@@ -59,22 +60,20 @@ def generate_pdf():
                 ("0222", "Babies - Highchair"),
                 ("0223", "Babies - Misc. Baby items"),
                 
-                ("0301B", "Winter - Coats 0-5T"),
-                ("0302B", "Winter - Hat 0-5T"),
-                ("0303B", "Winter - Gloves 0-5T"),
-                ("0304B", "Winter - Snow Pants 0-5T"),
-                
-                ("1701B", "Footwear - Shoes 0-5T"),
-                ("1702B", "Footwear - Winter Boots 0-5T"),
+                ("0225", "Babies - Toddler Bed"),
+                ("0226", "Babies - Crib Sheets"),
                 
                 ("1401", "Travel - Suitcase"),
                 ("1402", "Travel - Duffle Bag"),
                 
-                ("1201", "Toys - Books"),
-                ("1202", "Toys - Toys"),
+                ("1701B", "Footwear - Shoes 0-5T"),
                 
-                ("0225", "Babies - Toddler Bed"),
-                ("0226", "Babies - Crib Sheets"),
+                # Winter Items at the very bottom
+                ("0301B", "Winter - Coats 0-5T"),
+                ("0302B", "Winter - Hat 0-5T"),
+                ("0303B", "Winter - Gloves 0-5T"),
+                ("0304B", "Winter - Snow Pants 0-5T"),
+                ("1702B", "Footwear - Winter Boots 0-5T"),
             ]
         },
         # YOUTH & ADULT PAGE(S)
@@ -92,19 +91,17 @@ def generate_pdf():
                 ("0105Y", "Youth/Adult - Hoodie"),
                 ("0118Y", "Youth/Adult - Sweats"),
                 ("0117Y", "Youth/Adult - Hat"),
+                ("0119Y", "Youth/Adult - Swimsuit"),
                 
                 ("0112Y", "Youth/Adult - Belt"),
                 ("0113Y", "Youth/Adult - Bra"),
                 ("0114Y", "Youth/Adult - Tie"),
                 ("0115Y", "Youth/Adult - Baseball Cap"),
                 
-                ("0301Y", "Winter - Coat"),
-                ("0302Y", "Winter - Hat"),
-                ("0303Y", "Winter - Gloves"),
-                ("0304Y", "Winter - Snow Pants"),
+                ("0106Y", "Youth/Adult - Formal Dress"),
+                ("0107Y", "Youth/Adult - Mens Suit"),
                 
                 ("1701Y", "Footwear - Shoes"),
-                ("1702Y", "Footwear - Winter Boots"),
                 
                 ("0501Y", "Bedding - Pillow"),
                 ("0502Y", "Bedding - Blanket"),
@@ -112,8 +109,19 @@ def generate_pdf():
                 ("1401", "Travel - Suitcase"),
                 ("1402", "Travel - Duffle Bag"),
                 
-                ("0106Y", "Youth/Adult - Formal Dress"),
-                ("0107Y", "Youth/Adult - Mens Suit"),
+                ("PAGE_BREAK", "Toys & Winter"),
+                
+                ("1201", "Toys - Books"),
+                ("1202", "Toys - Toys"),
+                ("1203", "Toys - Stuffies"),
+                ("1204", "Toys - Fidget/Sensory items"),
+                
+                # Winter Items at the very bottom
+                ("0301Y", "Winter - Coat"),
+                ("0302Y", "Winter - Hat"),
+                ("0303Y", "Winter - Gloves"),
+                ("0304Y", "Winter - Snow Pants"),
+                ("1702Y", "Footwear - Winter Boots"),
             ]
         },
         # GIVING MACHINE
@@ -156,10 +164,7 @@ def generate_pdf():
                 ("0902", "Tech - MP3 Player"),
                 ("0903", "Tech - Speaker"),
                 
-                ("1201", "Toys - Books"),
-                ("1202", "Toys - Toys"),
-                ("1203", "Toys - Stuffies"),
-                ("1204", "Toys - Fidget/Sensory items"),
+                ("1901", "Birthdays - Birthday Room"),
                 
                 ("1101", "Crafts - Crocheting Kit"),
                 ("1102", "Crafts - Art Supply"),
@@ -215,6 +220,16 @@ def generate_pdf():
             c.line(x_margin, height - 0.8 * inch, width - x_margin, height - 0.8 * inch)
             
             for sku, desc in page["items"]:
+                if sku == "PAGE_BREAK":
+                    c.showPage()
+                    x = x_margin
+                    y = y_margin
+                    page_num += 1
+                    c.setFont("Helvetica-Bold", 20)
+                    c.drawString(x_margin, height - 0.7 * inch, f"{page_title} - Page {page_num}")
+                    c.line(x_margin, height - 0.8 * inch, width - x_margin, height - 0.8 * inch)
+                    continue
+                    
                 # Generate barcode image
                 img_path = os.path.join(tmpdir, sku)
                 try:

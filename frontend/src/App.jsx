@@ -68,6 +68,7 @@ const SKU_DEPARTMENTS = [
   { code: '16', label: 'Shopping Bags' },
   { code: '17', label: 'Footwear' },
   { code: '18', label: 'Giving Machine' },
+  { code: '19', label: 'Birthdays' },
 ];
 
 const SKU_ITEMS_BY_DEPT = {
@@ -90,6 +91,7 @@ const SKU_ITEMS_BY_DEPT = {
     { code: '16', label: 'Onesies' },
     { code: '17', label: 'Hat' },
     { code: '18', label: 'Sweats' },
+    { code: '19', label: 'Swimsuit' },
   ],
   '02': [
     { code: '01', label: 'Diapers' },
@@ -218,6 +220,9 @@ const SKU_ITEMS_BY_DEPT = {
     { code: '03', label: 'GM Pajamas' },
     { code: '04', label: 'GM Underwear Bundle' },
     { code: '05', label: 'GM Pots & Pans' },
+  ],
+  '19': [
+    { code: '01', label: 'Birthday Room' },
   ],
 };
 
