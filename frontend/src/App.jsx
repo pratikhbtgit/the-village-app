@@ -87,6 +87,9 @@ const SKU_ITEMS_BY_DEPT = {
     { code: '13', label: 'Bras' },
     { code: '14', label: 'Tie' },
     { code: '15', label: 'Baseball Cap' },
+    { code: '16', label: 'Onesies' },
+    { code: '17', label: 'Hat' },
+    { code: '18', label: 'Sweats' },
   ],
   '02': [
     { code: '01', label: 'Diapers' },
@@ -114,15 +117,18 @@ const SKU_ITEMS_BY_DEPT = {
     { code: '23', label: 'Toddler Mattress' },
     { code: '24', label: 'Toddler Bed' },
     { code: '25', label: 'Crib Sheets' },
+    { code: '27', label: 'Bottles' },
   ],
   '03': [
     { code: '01', label: 'Coats' },
     { code: '02', label: 'Winter Hat' },
     { code: '03', label: 'Gloves' },
+    { code: '04', label: 'Snow Pants' },
   ],
   '04': [
     { code: '01', label: 'Book Bag' },
     { code: '02', label: 'School Supplies' },
+    { code: '03', label: 'Packed Book Bag' },
   ],
   '05': [
     { code: '01', label: 'Pillow' },
@@ -136,6 +142,8 @@ const SKU_ITEMS_BY_DEPT = {
     { code: '03', label: 'Food Box' },
     { code: '04', label: 'Toilet Paper' },
     { code: '05', label: 'Gift Card' },
+    { code: '06', label: 'Hot Plate' },
+    { code: '07', label: 'Slow Cooker' },
   ],
   '07': [
     { code: '01', label: 'Shampoo' },

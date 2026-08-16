@@ -224,6 +224,10 @@ tr:hover td {
   transition: all 0.2s ease;
 }
 
+select.input, select.input option {
+  text-transform: capitalize;
+}
+
 .input:focus {
   outline: none;
   border-color: var(--accent-primary);
