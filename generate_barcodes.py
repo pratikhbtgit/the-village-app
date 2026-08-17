@@ -108,12 +108,15 @@ def generate_pdf():
                 ("0106Y", "Youth/Adult - Formal Dress"),
                 ("0107Y", "Youth/Adult - Mens Suit"),
                 
+                ("NEW_LINE", ""),
                 ("0501Y", "Bedding - Pillow"),
                 ("0502Y", "Bedding - Blanket"),
                 
+                ("NEW_LINE", ""),
                 ("1401", "Travel - Suitcase"),
                 ("1402", "Travel - Duffle Bag"),
                 
+                ("NEW_LINE", ""),
                 ("1201", "Toys - Books"),
                 ("1202", "Toys - Toys"),
                 ("1203", "Toys - Stuffies"),
@@ -224,6 +227,20 @@ def generate_pdf():
                     c.setFont("Helvetica-Bold", 20)
                     c.drawString(x_margin, height - 0.7 * inch, f"{page_title} - Page {page_num}")
                     c.line(x_margin, height - 0.8 * inch, width - x_margin, height - 0.8 * inch)
+                    continue
+                    
+                if sku == "NEW_LINE":
+                    if x > x_margin:  # if we are not already at the start of a line
+                        x = x_margin
+                        y -= y_step
+                        if y < 1 * inch:
+                            c.showPage()
+                            x = x_margin
+                            y = y_margin
+                            page_num += 1
+                            c.setFont("Helvetica-Bold", 20)
+                            c.drawString(x_margin, height - 0.7 * inch, f"{page_title} - Page {page_num}")
+                            c.line(x_margin, height - 0.8 * inch, width - x_margin, height - 0.8 * inch)
                     continue
                     
                 # Generate barcode image
