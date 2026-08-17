@@ -114,8 +114,6 @@ def generate_pdf():
                 ("1401", "Travel - Suitcase"),
                 ("1402", "Travel - Duffle Bag"),
                 
-                ("PAGE_BREAK", "Toys & Winter"),
-                
                 ("1201", "Toys - Books"),
                 ("1202", "Toys - Toys"),
                 ("1203", "Toys - Stuffies"),
@@ -243,7 +241,7 @@ def generate_pdf():
                 c.drawImage(img_path + ".png", x, y - 0.7 * inch, width=2*inch, height=0.7*inch)
                 
                 x += x_step
-                if x > width - x_step:
+                if x > width - x_step or page_title == "GIVING MACHINE":
                     x = x_margin
                     y -= y_step
                     
