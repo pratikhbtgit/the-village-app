@@ -5,8 +5,10 @@ import { Users, UserPlus, Package, Archive, Clock, Home, LogOut, X, Edit, Trash2
 import { format } from 'date-fns';
 import villageLogo from './assets/village-logo.svg';
 import skusMapping from './assets/skus.json';
+import CreatableSelect from 'react-select/creatable';
 
 const uniqueSkuItems = Array.from(new Set(Object.values(skusMapping))).sort();
+const selectOptions = uniqueSkuItems.map(item => ({ value: item, label: item }));
 
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? 'http://localhost:3001/api' 
@@ -1713,23 +1715,38 @@ function FosterRequests({ currentUser }) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', paddingRight: '0.5rem' }}>
-              <datalist id="sku-options">
-                {uniqueSkuItems.map(item => (
-                  <option key={item} value={item} />
-                ))}
-              </datalist>
               {formData.needsList.map((row, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: '#fff', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-light)' }}>
                   <input type="text" className="input" style={{ width: '90px' }} placeholder="Qty (3)" value={row.qty} onChange={e => handleNeedChange(idx, 'qty', e.target.value)} />
-                  <input
-                    type="text"
-                    list="sku-options"
-                    className="input"
-                    style={{ flex: 1 }}
-                    placeholder="Select or type an item..."
-                    value={row.item}
-                    onChange={e => handleNeedChange(idx, 'item', e.target.value)}
-                  />
+                  <div style={{ flex: 1 }}>
+                    <CreatableSelect
+                      isClearable
+                      options={selectOptions}
+                      placeholder="Select or type an item..."
+                      value={row.item ? { label: row.item, value: row.item } : null}
+                      onChange={(newValue) => handleNeedChange(idx, 'item', newValue ? newValue.value : '')}
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          borderColor: 'var(--border-light)',
+                          borderRadius: 'var(--radius-md)',
+                          padding: '0.15rem',
+                          boxShadow: 'none',
+                          '&:hover': {
+                            borderColor: 'var(--accent-primary)'
+                          }
+                        }),
+                        option: (base) => ({
+                          ...base,
+                          textTransform: 'capitalize'
+                        }),
+                        singleValue: (base) => ({
+                          ...base,
+                          textTransform: 'capitalize'
+                        })
+                      }}
+                    />
+                  </div>
                   <button type="button" onClick={() => handleRemoveNeedRow(idx)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-danger)', cursor: 'pointer', padding: '0.2rem' }}>
                     <X size={20} />
                   </button>
