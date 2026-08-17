@@ -1725,7 +1725,10 @@ function FosterRequests({ currentUser }) {
                       placeholder="Select or type an item..."
                       value={row.item ? { label: row.item, value: row.item } : null}
                       onChange={(newValue) => handleNeedChange(idx, 'item', newValue ? newValue.value : '')}
+                      maxMenuHeight={500}
+                      menuPortalTarget={document.body}
                       styles={{
+                        menuPortal: base => ({ ...base, zIndex: 9999 }),
                         control: (base) => ({
                           ...base,
                           borderColor: 'var(--border-light)',
