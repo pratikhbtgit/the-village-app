@@ -252,7 +252,7 @@
     "1701Y": "Footwear - Shoes",
     "1702Y": "Footwear - Winter Boots",
     "0501Y": "Bedding - Pillow",
-    "0502Y": "Bedding - Blanket",
+    "0502Y": "Youth/Adult - Blanket",
     "0106Y": "Youth/Adult - Formal Dress",
     "0107Y": "Youth/Adult - Mens Suit",
     "0403": "School Supplies - Packed Book Bag",
@@ -261,7 +261,7 @@
     "0119B": "Babies - Swimsuit 0-5T",
     "0119Y": "Youth/Adult - Swimsuit",
     "1901": "Birthdays - Birthday Room",
-    "0502B": "Bedding - Blanket 0-5T",
-    "0503B": "Bedding - Weighted Blanket 0-5T",
-    "0503Y": "Bedding - Weighted Blanket"
+    "0502B": "Babies - Blanket 0-5T",
+    "0503B": "Babies - Weighted Blanket 0-5T",
+    "0503Y": "Youth/Adult - Weighted Blanket"
 }

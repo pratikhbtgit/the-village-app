@@ -72,8 +72,8 @@ def generate_pdf():
                 ("0226", "Babies - Crib Sheets"),
                 
                 ("NEW_LINE", ""),
-                ("0502B", "Bedding - Blanket 0-5T"),
-                ("0503B", "Bedding - Weighted Blanket 0-5T"),
+                ("0502B", "Babies - Blanket 0-5T"),
+                ("0503B", "Babies - Weighted Blanket 0-5T"),
                 
                 ("1401", "Travel - Suitcase"),
                 ("1402", "Travel - Duffle Bag"),
@@ -114,8 +114,8 @@ def generate_pdf():
                 
                 ("NEW_LINE", ""),
                 ("0501Y", "Bedding - Pillow"),
-                ("0502Y", "Bedding - Blanket"),
-                ("0503Y", "Bedding - Weighted Blanket"),
+                ("0502Y", "Youth/Adult - Blanket"),
+                ("0503Y", "Youth/Adult - Weighted Blanket"),
                 
                 ("NEW_LINE", ""),
                 ("1401", "Travel - Suitcase"),
