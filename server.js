@@ -656,6 +656,35 @@ app.post('/api/volunteerHours/checkout', requirePermission('volunteerHours.check
   });
 });
 
+app.post('/api/volunteerHours/manual', requirePermission('volunteerHours.checkin'), (req, res) => {
+  const { volunterID, TimeIn, TimeOut } = req.body;
+  const requestedID = parseInt(volunterID);
+  if (req.user.role !== 'admin' && parseInt(req.user.volunteer_id) !== requestedID) {
+    return res.status(403).json({ error: 'You can only log your own hours.' });
+  }
+  execute(res, `INSERT INTO volunteerHours (volunterID, TimeIn, TimeOut) VALUES (?, ?, ?)`, [requestedID, TimeIn, TimeOut]);
+});
+
+app.put('/api/volunteerHours/:id', requirePermission('volunteerHours.checkin'), (req, res) => {
+  const hourID = parseInt(req.params.id);
+  const { volunterID, TimeIn, TimeOut } = req.body;
+  const requestedID = parseInt(volunterID);
+  
+  if (req.user.role !== 'admin' && parseInt(req.user.volunteer_id) !== requestedID) {
+    return res.status(403).json({ error: 'You can only edit your own hours.' });
+  }
+  
+  db.get(`SELECT volunterID FROM volunteerHours WHERE ID = ?`, [hourID], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Log not found' });
+    if (req.user.role !== 'admin' && parseInt(row.volunterID) !== parseInt(req.user.volunteer_id)) {
+      return res.status(403).json({ error: 'You can only edit your own hours.' });
+    }
+    
+    execute(res, `UPDATE volunteerHours SET TimeIn = ?, TimeOut = ? WHERE ID = ?`, [TimeIn, TimeOut, hourID]);
+  });
+});
+
 app.get('/api/visitors', requirePermission('visitors.read'), (req, res) => {
   query(res, 'SELECT * FROM Visitors ORDER BY VisitorID DESC');
 });

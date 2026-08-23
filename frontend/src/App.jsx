@@ -559,6 +559,9 @@ function TimeClock({ currentUser }) {
   const [vols, setVols] = useState([]);
   const [hours, setHours] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  const [showManualModal, setShowManualModal] = useState(false);
+  const [manualForm, setManualForm] = useState({ id: null, volunterID: '', TimeIn: '', TimeOut: '' });
 
   useEffect(() => {
     axios.get(`${API}/volunteers`).then(res => setVols(res.data));
@@ -574,20 +577,56 @@ function TimeClock({ currentUser }) {
   const isAdmin = currentUser?.role === 'admin';
 
   const visibleVols = vols.filter(v => {
-  const matchesSearch = `${v.firstname} ${v.lastname}`.toLowerCase().includes(searchTerm.toLowerCase());
-  if (!isAdmin) return matchesSearch && v.ID == currentUser?.volunteer_id;  
-  return matchesSearch;
-});
+    const matchesSearch = `${v.firstname} ${v.lastname}`.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!isAdmin) return matchesSearch && v.ID == currentUser?.volunteer_id;  
+    return matchesSearch;
+  });
 
- const canActOnVolunteer = (volID) => {
-  if (isAdmin) return true;
-  return volID == currentUser?.volunteer_id;  
-};
+  const canActOnVolunteer = (volID) => {
+    if (isAdmin) return true;
+    return volID == currentUser?.volunteer_id;  
+  };
+
+  const openManualModal = (hourLog = null) => {
+    if (hourLog) {
+      setManualForm({ 
+        id: hourLog.ID, 
+        volunterID: hourLog.volunterID, 
+        TimeIn: hourLog.TimeIn ? new Date(hourLog.TimeIn).toISOString().slice(0, 16) : '', 
+        TimeOut: hourLog.TimeOut ? new Date(hourLog.TimeOut).toISOString().slice(0, 16) : '' 
+      });
+    } else {
+      setManualForm({ id: null, volunterID: currentUser?.volunteer_id || (vols.length > 0 ? vols[0].ID : ''), TimeIn: '', TimeOut: '' });
+    }
+    setShowManualModal(true);
+  };
+  
+  const saveManualHours = async (e) => {
+    e.preventDefault();
+    if (!manualForm.TimeIn || !manualForm.volunterID) return alert("Volunteer and Time In are required");
+    const tIn = manualForm.TimeIn.replace('T', ' ') + ':00';
+    const tOut = manualForm.TimeOut ? manualForm.TimeOut.replace('T', ' ') + ':00' : null;
+
+    try {
+      if (manualForm.id) {
+        await axios.put(`${API}/volunteerHours/${manualForm.id}`, { volunterID: manualForm.volunterID, TimeIn: tIn, TimeOut: tOut });
+      } else {
+        await axios.post(`${API}/volunteerHours/manual`, { volunterID: manualForm.volunterID, TimeIn: tIn, TimeOut: tOut });
+      }
+      setShowManualModal(false);
+      fetchHours();
+    } catch (err) {
+      alert("Error saving hours: " + (err.response?.data?.error || err.message));
+    }
+  };
 
   return (
     <div className="page-container">
-      <div className="page-header">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 className="page-title">Volunteer Sign In / Out</h2>
+        <button onClick={() => openManualModal(null)} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Plus size={16} /> Log Manual Hours
+        </button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '2rem', alignItems: 'start' }}>
 
@@ -643,7 +682,7 @@ function TimeClock({ currentUser }) {
           <div className="table-container" style={{ margin: 0, flex: 1, overflowY: 'auto' }}>
             <table style={{ margin: 0 }}>
               <thead style={{ position: 'sticky', top: 0, backgroundColor: 'var(--bg-secondary)', zIndex: 10 }}>
-                <tr><th>Volunteer</th><th>Check In</th><th>Check Out</th></tr>
+                <tr><th>Volunteer</th><th>Check In</th><th>Check Out</th><th></th></tr>
               </thead>
               <tbody>
                 {hours.length > 0 ? hours
@@ -655,9 +694,12 @@ function TimeClock({ currentUser }) {
                       <td style={{ color: !h.TimeOut ? 'var(--accent-success)' : 'inherit', fontWeight: !h.TimeOut ? 600 : 'normal' }}>
                         {h.TimeOut ? format(new Date(h.TimeOut), 'MMM d, yyyy h:mm a') : 'Currently Active'}
                       </td>
+                      <td style={{ width: '40px', textAlign: 'center' }}>
+                        <button onClick={() => openManualModal(h)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><Edit size={16} /></button>
+                      </td>
                     </tr>
                   )) : (
-                  <tr><td colSpan="3" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>No check-in history available.</td></tr>
+                  <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>No check-in history available.</td></tr>
                 )}
               </tbody>
             </table>
@@ -665,6 +707,26 @@ function TimeClock({ currentUser }) {
         </div>
 
       </div>
+
+      <Modal isOpen={showManualModal} onClose={() => setShowManualModal(false)} title={manualForm.id ? "Edit Manual Hours" : "Log Manual Hours"}>
+        <form onSubmit={saveManualHours} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="form-group">
+            <label>Volunteer</label>
+            <select className="input" value={manualForm.volunterID} onChange={e => setManualForm({...manualForm, volunterID: e.target.value})} disabled={!isAdmin}>
+              {vols.map(v => <option key={v.ID} value={v.ID}>{v.firstname} {v.lastname}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Check In Time</label>
+            <input type="datetime-local" className="input" required value={manualForm.TimeIn} onChange={e => setManualForm({...manualForm, TimeIn: e.target.value})} />
+          </div>
+          <div className="form-group">
+            <label>Check Out Time</label>
+            <input type="datetime-local" className="input" value={manualForm.TimeOut} onChange={e => setManualForm({...manualForm, TimeOut: e.target.value})} />
+          </div>
+          <button type="submit" className="btn btn-primary" style={{width: '100%', justifyContent: 'center'}}>Save Log</button>
+        </form>
+      </Modal>
     </div>
   );
 }
