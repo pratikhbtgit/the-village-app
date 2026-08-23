@@ -122,6 +122,8 @@ const SKU_ITEMS_BY_DEPT = {
     { code: '24', label: 'Toddler Bed' },
     { code: '25', label: 'Crib Sheets' },
     { code: '27', label: 'Bottles' },
+    { code: '28', label: 'Blanket 0-5T', forceSku: '0502B' },
+    { code: '29', label: 'Weighted Blanket 0-5T', forceSku: '0503B' },
   ],
   '03': [
     { code: '01', label: 'Coats' },
@@ -136,8 +138,8 @@ const SKU_ITEMS_BY_DEPT = {
   ],
   '05': [
     { code: '01', label: 'Pillow' },
-    { code: '02', label: 'Blanket/Quilt' },
-    { code: '03', label: 'Weighted Blanket' },
+    { code: '02', label: 'Youth/Adult - Blanket', forceSku: '0502Y' },
+    { code: '03', label: 'Youth/Adult - Weighted Blanket', forceSku: '0503Y' },
     { code: '04', label: 'Twin Sheets' },
   ],
   '06': [
@@ -774,7 +776,7 @@ function Inventory({ currentUser }) {
   const handleItemChange = (itemCode) => {
     const { deptCode, sizeCode } = formData;
     const itemDef = (SKU_ITEMS_BY_DEPT[deptCode] || []).find(i => i.code === itemCode);
-    const sku = buildSKU(deptCode, itemCode, sizeCode);
+    const sku = itemDef?.forceSku ? itemDef.forceSku : buildSKU(deptCode, itemCode, sizeCode);
     setFormData(prev => ({
       ...prev,
       itemCode,
@@ -785,7 +787,8 @@ function Inventory({ currentUser }) {
 
   const handleSizeChange = (sizeCode) => {
     const sizeDef = SKU_SIZES.find(s => s.code === sizeCode);
-    const sku = buildSKU(formData.deptCode, formData.itemCode, sizeCode);
+    const itemDef = (SKU_ITEMS_BY_DEPT[formData.deptCode] || []).find(i => i.code === formData.itemCode);
+    const sku = itemDef?.forceSku ? itemDef.forceSku : buildSKU(formData.deptCode, formData.itemCode, sizeCode);
     setFormData(prev => ({
       ...prev,
       sizeCode,
