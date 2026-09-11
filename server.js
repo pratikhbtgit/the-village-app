@@ -237,6 +237,72 @@ db.serialize(() => {
   db.run(`PRAGMA foreign_keys = ON`);
 
   db.run(`
+    CREATE TABLE IF NOT EXISTS Category (
+      ID INTEGER PRIMARY KEY AUTOINCREMENT,
+      category TEXT
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS Items (
+      itemID INTEGER PRIMARY KEY AUTOINCREMENT,
+      ItemName TEXT,
+      Category INTEGER,
+      Size TEXT,
+      Condition TEXT,
+      Amount REAL,
+      Quantity INTEGER,
+      SKU TEXT,
+      isKit INTEGER NOT NULL DEFAULT 0,
+      KitContents TEXT
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS Visitors (
+      VisitorID INTEGER PRIMARY KEY AUTOINCREMENT,
+      VName TEXT,
+      Childfirstname TEXT,
+      visitDate TEXT,
+      isfirstPlacement INTEGER,
+      RPMName TEXT,
+      Region TEXT
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS Volunteers (
+      ID INTEGER PRIMARY KEY AUTOINCREMENT,
+      firstname TEXT,
+      lastname TEXT,
+      phone TEXT,
+      email TEXT,
+      Qrcode TEXT,
+      dateadded TEXT
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS volunteerHours (
+      ID INTEGER PRIMARY KEY AUTOINCREMENT,
+      volunterID INTEGER,
+      TimeIn TEXT,
+      TimeOut TEXT,
+      FOREIGN KEY(volunterID) REFERENCES Volunteers(ID)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ItemCheckOut (
+      checkoutID INTEGER PRIMARY KEY AUTOINCREMENT,
+      ItemID INTEGER,
+      VisitorID INTEGER,
+      Quanlity INTEGER,
+      CheckoutDate TEXT
+    )
+  `);
+
+  db.run(`
     CREATE TABLE IF NOT EXISTS roles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE,
